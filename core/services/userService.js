@@ -24,4 +24,18 @@ const loginUser = async (username, password) => {
   }
 };
 
-module.exports = { loginUser };
+const getUserDetailsByCustomerId = async (customerId) => {
+  try {
+    const user = await userModel.findById(customerId).select('-password');
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
+  } catch (err) {
+    throw new Error(err.message || "Internal Server Error");
+  }
+};
+
+module.exports = { loginUser, getUserDetailsByCustomerId };

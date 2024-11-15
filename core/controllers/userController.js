@@ -1,3 +1,4 @@
+const { mongoose } = require("mongoose");
 const userService = require("../services/userService");
 
 const loginController = async (req, res) => {
@@ -27,4 +28,36 @@ const loginController = async (req, res) => {
   }
 };
 
-module.exports = { loginController };
+const userDetailsController = async (req, res) => {
+  const { customerId } = req.query;
+
+  console.log(`Fetching details for customerId: ${customerId}`);
+  if (!mongoose.Types.ObjectId.isValid(customerId)) {
+    return res.status(400).json({
+      status: false,
+      message: "Invalid customerId provided.",
+    });
+  }
+
+  try {
+    const userDetails = await userService.getUserDetailsByCustomerId(
+      customerId
+    );
+
+    console.log("User details fetched successfully");
+    return res.status(200).json({
+      status: true,
+      message: "User details fetched successfully",
+      user: userDetails,
+    });
+  } catch (err) {
+    console.error("Error fetching user details:", err.message);
+    return res.status(400).json({
+      status: false,
+      message:
+        err.message || "Unable to fetch user details. Please try again later.",
+    });
+  }
+};
+
+module.exports = { loginController, userDetailsController };
