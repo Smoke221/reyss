@@ -8,8 +8,7 @@ const authenticate = (req, res, next) => {
       if (err) {
         res.status(401).json({ msg: "Invalid token, please login again" });
       } else {
-        const userID = decoded.id;
-        req.userID = userID;
+        req.userID = decoded.id;
         next();
       }
     });

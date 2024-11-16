@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { dbConnection } = require("./dbUtils/db");
 const userRouter = require("./routes/user");
+const orderRouter = require("./routes/order");
 const app = express();
 app.use(express.json());
 
@@ -12,6 +13,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/", userRouter);
+app.use('/', orderRouter)
 
 app.get("/s", (req, res) => {
   res.send("Secured page.");

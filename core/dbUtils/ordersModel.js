@@ -42,6 +42,10 @@ const orderSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    orderType: {
+      type: String,
+      required: true,
+    },
     placedOn: {
       type: Date,
       default: Date.now,
@@ -59,6 +63,13 @@ const orderSchema = new mongoose.Schema(
     amountPaid: {
       type: Boolean,
       default: false,
+    },
+    transactionId: {
+      type: String,
+      required: function () {
+        // Make transactionId required only if amountPaid is true
+        return this.amountPaid;
+      },
     },
   },
   { timestamps: true }
