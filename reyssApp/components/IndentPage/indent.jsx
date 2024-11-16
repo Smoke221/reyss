@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
@@ -22,7 +23,25 @@ const IndentPage = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch("YOUR_BACKEND_API/orders");
+      const customerId = await AsyncStorage.getItem("customerId");
+      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+
+      if (!customerId || !userAuthToken) {
+        console.error("Missing customerId or userAuthToken");
+        return;
+      }
+
+      const response = await fetch(
+        `http://192.168.0.108:8090/history?customerId=${customerId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userAuthToken}`,
+          },
+        }
+      );
+
       const data = await response.json();
       setOrders(data);
     } catch (error) {
@@ -31,10 +50,11 @@ const IndentPage = () => {
   };
 
   const handleDatePress = (day) => {
-    setSelectedDate(day.dateString);
-    console.log(setSelectedDate(day.dateString));
+    const dateString = day.dateString;
+    setSelectedDate(dateString);
 
-    const dayOrders = orders[day.dateString];
+    const dayOrders = orders[dateString] || "";
+
     if (dayOrders) {
       setAmOrder(dayOrders.AM || null);
       setPmOrder(dayOrders.PM || null);
@@ -42,6 +62,17 @@ const IndentPage = () => {
       setAmOrder(null);
       setPmOrder(null);
     }
+  };
+
+  const renderDay = (day) => {
+    const dateText = "Note";
+
+    return (
+      <View style={{ alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ color: "#888", fontSize: 8 }}>{dateText}</Text>
+        <Text style={{ color: "#000", fontSize: 16 }}>{day}</Text>
+      </View>
+    );
   };
 
   return (
@@ -64,9 +95,10 @@ const IndentPage = () => {
           <MaterialIcons
             name={direction === "left" ? "arrow-back" : "arrow-forward"}
             size={24}
-            color="#ffcc00" // Customize arrow colo
+            color="#ffcc00"
           />
         )}
+        // dayComponent={({ date, state }) => renderDay(date.day)}
       />
 
       {/* Order Details */}
@@ -75,14 +107,16 @@ const IndentPage = () => {
         <View style={styles.orderCard}>
           <Text style={styles.orderType}>AM</Text>
           {amOrder ? (
-            <>
+            <View style={styles.orderBox}>
               <Text style={styles.orderText}>Quantity: {amOrder.quantity}</Text>
-              <Text style={styles.orderText}>Route: {amOrder.route}</Text>
+              <Text style={styles.orderText}>
+                Total Amount: ₹{amOrder.totalAmount}
+              </Text>
               <Text style={styles.orderText}>Date: {selectedDate}</Text>
               <TouchableOpacity style={styles.arrowButton}>
-                <Text style={styles.arrowText}>→</Text>
+                <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
               </TouchableOpacity>
-            </>
+            </View>
           ) : (
             <Text style={styles.naText}>N/A</Text>
           )}
@@ -92,14 +126,16 @@ const IndentPage = () => {
         <View style={styles.orderCard}>
           <Text style={styles.orderType}>PM</Text>
           {pmOrder ? (
-            <>
-              <Text style={styles.orderText}>Quantity: {pmOrder.quantity}</Text>
-              <Text style={styles.orderText}>Route: {pmOrder.route}</Text>
+            <View style={styles.orderBox}>
+              <Text style={styles.orderText}>Quantity: {amOrder.quantity}</Text>
+              <Text style={styles.orderText}>
+                Total Amount: ₹{amOrder.totalAmount}
+              </Text>
               <Text style={styles.orderText}>Date: {selectedDate}</Text>
               <TouchableOpacity style={styles.arrowButton}>
-                <Text style={styles.arrowText}>→</Text>
+                <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
               </TouchableOpacity>
-            </>
+            </View>
           ) : (
             <Text style={styles.naText}>N/A</Text>
           )}
@@ -137,8 +173,9 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   orderType: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "bold",
+    // color: "#ffcc00",
   },
   orderText: {
     fontSize: 16,
@@ -153,10 +190,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 10,
     top: 10,
-  },
-  arrowText: {
-    fontSize: 24,
-    color: "#ffcc00",
   },
 });
 
