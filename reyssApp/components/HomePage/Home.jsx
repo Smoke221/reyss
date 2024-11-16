@@ -1,19 +1,78 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 const HomePage = () => {
-  // Sample data
-  const customerName = "John Doe";
-  const customerID = "123456";
-  const route = "Route A";
   const amountPending = "₹ 10,000";
   const activeIndentAmount = "₹ 10,000";
   const activeIndentDate = "2024-11-15";
+  const [isLoading, setIsLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchDataAsync = async () => {
+      await fetchData();
+    };
+    fetchDataAsync();
+  }, []);
+
+  // Fetch data and update state
+  const fetchData = async () => {
+    setIsLoading(true);
+    const userDetailsData = await userDetailsData1();
+    if (userDetailsData) {
+      setUserDetails(userDetailsData);
+    }
+    setIsLoading(false); // Reset loading state after data is fetched
+  };
 
   const isHighAmountPending =
     parseInt(amountPending.replace(/[^0-9]/g, ""), 10) > 5000;
 
+  // Fetch user details from API
+  const userDetailsData1 = async () => {
+    try {
+      const customerId = await AsyncStorage.getItem("customerId");
+      const response = await fetch(
+        `http://10.0.18.105:8090/userDetails?customerId=${customerId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const userGetResponse = await response.json();
+      if (!response.ok || !userGetResponse.status) {
+        Alert.alert("Failed", user.message || "Something went wrong");
+        setIsLoading(false);
+        return;
+      }
+
+      const userDetails = {
+        customerName: userGetResponse.user.customerName,
+        customerID: userGetResponse.user.customerId,
+        route: userGetResponse.user.route,
+      };
+      return userDetails;
+    } catch (err) {
+      console.error("User details fetch error:", err);
+      setIsLoading(false);
+      Alert.alert("Error", "An error occurred. Please try again.");
+    }
+  };
+
+  // Destructure userDetails or use empty object to prevent errors
+  const { customerName, customerID, route } = userDetails || {};
   return (
     <View style={styles.container}>
       {/* Header section with logo */}
@@ -155,9 +214,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 5,
     paddingHorizontal: 10,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    elevation: 2,
   },
   callText: {
     marginTop: 5,
