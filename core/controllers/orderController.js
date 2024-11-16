@@ -1,4 +1,4 @@
-const { placeOrder } = require("../services/orderService");
+const { placeOrder, orderHistoryService } = require("../services/orderService");
 
 const placeOrderController = async (req, res) => {
   try {
@@ -22,6 +22,17 @@ const placeOrderController = async (req, res) => {
   }
 };
 
+const orderHistoryController = async (req, res) => {
+  const customerId = req.userID;
+
+  const getResponse = await orderHistoryService(customerId);
+  console.log(getResponse);
+  
+
+  res.status(200).json(getResponse);
+};
+
 module.exports = {
   placeOrderController,
+  orderHistoryController,
 };

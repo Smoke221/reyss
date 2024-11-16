@@ -48,6 +48,39 @@ const placeOrder = async (customerId, orderDetails) => {
   }
 };
 
+const orderHistoryService = async (customerId) => {
+  const orders = await orderModel.find({ customerId });
+
+  // Function to group orders by date and type (AM/PM)
+  const groupOrdersByDateAndType = (orders) => {
+    const result = {};
+
+    orders.forEach((order) => {
+      const deliveryDate = order.deliveryOn.toISOString().split("T")[0];
+      const orderType = order.orderType;
+
+      const totalQuantity = order.products.reduce(
+        (total, product) => total + product.quantity,
+        0
+      );
+      if (!result[deliveryDate]) {
+        result[deliveryDate] = {};
+      }
+      result[deliveryDate][orderType] = {
+        quantity: totalQuantity,
+        route: order.route,
+        totalAmount: order.totalAmount,
+      };
+    });
+
+    return result;
+  };
+  const groupedOrders = groupOrdersByDateAndType(orders);
+
+  return groupedOrders;
+};
+
 module.exports = {
   placeOrder,
+  orderHistoryService,
 };
