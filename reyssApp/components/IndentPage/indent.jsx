@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,15 +10,17 @@ import { Calendar } from "react-native-calendars";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import moment from "moment";
+
+const API_BASE_URL = "http://10.0.18.105:8090";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [amOrder, setAmOrder] = useState(null);
-  const [pmOrder, setPmOrder] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(
+    moment().format("YYYY-MM-DD")
+  );
   const navigation = useNavigation();
 
-  // Fetch orders when the component loads
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -34,7 +36,7 @@ const IndentPage = () => {
       }
 
       const response = await fetch(
-        `http://10.0.18.105:8090/history?customerId=${customerId}`,
+        `${API_BASE_URL}/history?customerId=${customerId}`,
         {
           method: "GET",
           headers: {
@@ -43,6 +45,10 @@ const IndentPage = () => {
           },
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
 
       const data = await response.json();
       setOrders(data);
@@ -54,28 +60,16 @@ const IndentPage = () => {
   const handleDatePress = (day) => {
     const dateString = day.dateString;
     setSelectedDate(dateString);
-
-    const dayOrders = orders[dateString] || "";
-
-    if (dayOrders) {
-      setAmOrder(dayOrders.AM || null);
-      setPmOrder(dayOrders.PM || null);
-    } else {
-      setAmOrder(null);
-      setPmOrder(null);
-    }
   };
 
-  const renderDay = (day) => {
-    const dateText = "Note";
-
-    return (
-      <View style={{ alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ color: "#888", fontSize: 8 }}>{dateText}</Text>
-        <Text style={{ color: "#000", fontSize: 16 }}>{day}</Text>
-      </View>
-    );
-  };
+  // Memoizing orders for the selected date to prevent recalculations on every render
+  const { amOrder, pmOrder } = useMemo(() => {
+    const dayOrders = orders[selectedDate] || {};
+    return {
+      amOrder: dayOrders.AM || null,
+      pmOrder: dayOrders.PM || null,
+    };
+  }, [orders, selectedDate]);
 
   const handleOrderClick = (orderDetails, shift) => {
     navigation.navigate("PlaceOrderPage", {
@@ -94,9 +88,7 @@ const IndentPage = () => {
       {/* Calendar Component */}
       <Calendar
         onDayPress={handleDatePress}
-        markedDates={{
-          [selectedDate]: { selected: true },
-        }}
+        markedDates={{ [selectedDate]: { selected: true } }}
         theme={{
           selectedDayBackgroundColor: "#ffcc00",
           todayTextColor: "#ffcc00",
@@ -108,55 +100,50 @@ const IndentPage = () => {
             color="#ffcc00"
           />
         )}
-        // dayComponent={({ date, state }) => renderDay(date.day)}
       />
 
       {/* Order Details */}
       <ScrollView style={styles.ordersContainer}>
         {/* AM Order */}
-        <View style={styles.orderCard}>
-          <Text style={styles.orderType}>AM</Text>
-          {amOrder ? (
-            <View style={styles.orderBox}>
-              <Text style={styles.orderText}>Quantity: {amOrder.quantity}</Text>
-              <Text style={styles.orderText}>
-                Total Amount: ₹{amOrder.totalAmount}
-              </Text>
-              <Text style={styles.orderText}>Date: {selectedDate}</Text>
-              <TouchableOpacity
-                style={styles.arrowButton}
-                onPress={() => handleOrderClick(amOrder.items, "AM")}
-              >
-                <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <Text style={styles.naText}>N/A</Text>
-          )}
-        </View>
+        <OrderCard
+          shift="AM"
+          order={amOrder}
+          selectedDate={selectedDate}
+          onOrderClick={handleOrderClick}
+        />
 
         {/* PM Order */}
-        <View style={styles.orderCard}>
-          <Text style={styles.orderType}>PM</Text>
-          {pmOrder ? (
-            <View style={styles.orderBox}>
-              <Text style={styles.orderText}>Quantity: {amOrder.quantity}</Text>
-              <Text style={styles.orderText}>
-                Total Amount: ₹{amOrder.totalAmount}
-              </Text>
-              <Text style={styles.orderText}>Date: {selectedDate}</Text>
-              <TouchableOpacity style={styles.arrowButton}>
-                <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <Text style={styles.naText}>N/A</Text>
-          )}
-        </View>
+        <OrderCard
+          shift="PM"
+          order={pmOrder}
+          selectedDate={selectedDate}
+          onOrderClick={handleOrderClick}
+        />
       </ScrollView>
     </View>
   );
 };
+
+const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => (
+  <View style={styles.orderCard}>
+    <Text style={styles.orderType}>{shift}</Text>
+    {order ? (
+      <View style={styles.orderBox}>
+        <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
+        <Text style={styles.orderText}>Total Amount: ₹{order.totalAmount}</Text>
+        <Text style={styles.orderText}>Date: {selectedDate}</Text>
+        <TouchableOpacity
+          style={styles.arrowButton}
+          onPress={() => onOrderClick(order.items, shift)}
+        >
+          <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
+        </TouchableOpacity>
+      </View>
+    ) : (
+      <Text style={styles.naText}>N/A</Text>
+    )}
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -188,7 +175,6 @@ const styles = StyleSheet.create({
   orderType: {
     fontSize: 24,
     fontWeight: "bold",
-    // color: "#ffcc00",
   },
   orderText: {
     fontSize: 16,
