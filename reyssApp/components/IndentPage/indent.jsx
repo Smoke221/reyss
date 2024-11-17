@@ -9,12 +9,14 @@ import {
 import { Calendar } from "react-native-calendars";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [amOrder, setAmOrder] = useState(null);
   const [pmOrder, setPmOrder] = useState(null);
+  const navigation = useNavigation();
 
   // Fetch orders when the component loads
   useEffect(() => {
@@ -32,7 +34,7 @@ const IndentPage = () => {
       }
 
       const response = await fetch(
-        `http://192.168.0.108:8090/history?customerId=${customerId}`,
+        `http://10.0.18.105:8090/history?customerId=${customerId}`,
         {
           method: "GET",
           headers: {
@@ -75,6 +77,14 @@ const IndentPage = () => {
     );
   };
 
+  const handleOrderClick = (orderDetails, shift) => {
+    navigation.navigate("PlaceOrderPage", {
+      orderDetails,
+      selectedDate,
+      shift,
+    });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -113,7 +123,10 @@ const IndentPage = () => {
                 Total Amount: ₹{amOrder.totalAmount}
               </Text>
               <Text style={styles.orderText}>Date: {selectedDate}</Text>
-              <TouchableOpacity style={styles.arrowButton}>
+              <TouchableOpacity
+                style={styles.arrowButton}
+                onPress={() => handleOrderClick(amOrder.items, "AM")}
+              >
                 <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
               </TouchableOpacity>
             </View>
