@@ -6,10 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native"; // For navigation
+import { useNavigation } from "@react-navigation/native";
 
 const PlaceOrderPage = ({ route }) => {
-  const { orderDetails, selectedDate, shift } = route.params; // Get the passed data
+  const { orderDetails, selectedDate, shift } = route.params;
   const navigation = useNavigation();
 
   const renderItem = ({ item }) => (

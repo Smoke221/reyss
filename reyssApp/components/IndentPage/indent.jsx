@@ -11,8 +11,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
-
-const API_BASE_URL = "http://10.0.18.105:8090";
+import { home } from "../../urls";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
@@ -35,16 +34,13 @@ const IndentPage = () => {
         return;
       }
 
-      const response = await fetch(
-        `${API_BASE_URL}/history?customerId=${customerId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userAuthToken}`,
-          },
-        }
-      );
+      const response = await fetch(`http://${home}:8090/history`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userAuthToken}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);

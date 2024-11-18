@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { home } from "../../urls";
 
 const HomePage = () => {
   const amountPending = "₹ 10,000";
@@ -43,7 +44,7 @@ const HomePage = () => {
     try {
       const customerId = await AsyncStorage.getItem("customerId");
       const response = await fetch(
-        `http://10.0.18.105:8090/userDetails?customerId=${customerId}`,
+        `http://${home}:8090/userDetails?customerId=${customerId}`,
         {
           method: "GET",
           headers: {

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { home } from "../urls";
 
 const LoginPage = ({ navigation }) => {
   const [username, setUsername] = useState("");
@@ -20,7 +21,7 @@ const LoginPage = ({ navigation }) => {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://10.0.18.105:8090/auth", {
+      const response = await fetch(`http://${home}:8090/auth`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
