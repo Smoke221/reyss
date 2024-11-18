@@ -5,12 +5,17 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Button,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import moment from "moment"; // Use moment to handle date comparison
 
 const PlaceOrderPage = ({ route }) => {
   const { orderDetails, selectedDate, shift } = route.params;
   const navigation = useNavigation();
+
+  // Check if the selected date is in the past
+  const isPastDate = moment(selectedDate).isBefore(moment(), "day");
 
   const renderItem = ({ item }) => (
     <View style={styles.itemRow}>
@@ -19,6 +24,11 @@ const PlaceOrderPage = ({ route }) => {
       <Text style={styles.itemText}>{item.units}</Text>
     </View>
   );
+
+  const handleSubmit = () => {
+    // Logic to handle order submission (e.g., API call)
+    console.log("Order submitted");
+  };
 
   return (
     <View style={styles.container}>
@@ -31,12 +41,11 @@ const PlaceOrderPage = ({ route }) => {
         >
           <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
-        {/* <Text style={styles.dateText}>{selectedDate}</Text> */}
       </View>
 
       {/* Order Info */}
       <View style={styles.orderInfoContainer}>
-        <Text style={styles.orderText}>Delivery: {selectedDate}</Text>
+        <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text>
         <Text style={styles.orderText}>Customer Name</Text>
         <Text style={styles.orderText}>Route</Text>
         <Text style={styles.orderText}>Shift: {shift}</Text>
@@ -56,6 +65,13 @@ const PlaceOrderPage = ({ route }) => {
           keyExtractor={(item, index) => index.toString()}
         />
       </View>
+
+      {/* Submit Button */}
+      {!isPastDate && (
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>Submit</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -118,6 +134,20 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  submitButton: {
+    backgroundColor: "#ffcc00",
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "#fff",
+    padding: 10,
+    margin: 10,
+    alignItems: "center",
+  },
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: 800,
   },
 });
 

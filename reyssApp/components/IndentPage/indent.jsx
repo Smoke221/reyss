@@ -122,22 +122,26 @@ const IndentPage = () => {
 
 const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => (
   <View style={styles.orderCard}>
-    <Text style={styles.orderType}>{shift}</Text>
-    {order ? (
-      <View style={styles.orderBox}>
-        <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
-        <Text style={styles.orderText}>Total Amount: ₹{order.totalAmount}</Text>
-        <Text style={styles.orderText}>Date: {selectedDate}</Text>
-        <TouchableOpacity
-          style={styles.arrowButton}
-          onPress={() => onOrderClick(order.items, shift)}
-        >
-          <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
-        </TouchableOpacity>
-      </View>
-    ) : (
-      <Text style={styles.naText}>N/A</Text>
-    )}
+    <View style={styles.orderContent}>
+      <Text style={styles.orderType}>{shift}</Text>
+      {order ? (
+        <>
+          <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
+          <Text style={styles.orderText}>
+            Total Amount: ₹{order.totalAmount}
+          </Text>
+        </>
+      ) : (
+        <Text style={styles.naText}>N/A</Text>
+      )}
+    </View>
+
+    <TouchableOpacity
+      style={styles.arrowButton}
+      onPress={() => onOrderClick(order ? order.items : null, shift)}
+    >
+      <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
+    </TouchableOpacity>
   </View>
 );
 
@@ -184,7 +188,7 @@ const styles = StyleSheet.create({
   arrowButton: {
     position: "absolute",
     right: 10,
-    top: 10,
+    top: 20,
   },
 });
 
