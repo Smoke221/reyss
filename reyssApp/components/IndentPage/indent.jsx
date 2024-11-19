@@ -11,7 +11,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
-import { home } from "../../urls";
+import { ipAddress } from "../../urls";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
@@ -34,7 +34,7 @@ const IndentPage = () => {
         return;
       }
 
-      const response = await fetch(`http://${home}:8090/history`, {
+      const response = await fetch(`http://${ipAddress}:8090/history`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

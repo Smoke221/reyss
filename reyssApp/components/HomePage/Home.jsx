@@ -9,14 +9,13 @@ import {
   Alert,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { home } from "../../urls";
+import { ipAddress } from "../../urls";
 
 const HomePage = () => {
   const amountPending = "₹ 10,000";
-  const activeIndentAmount = "₹ 10,000";
-  const activeIndentDate = "2024-11-15";
   const [isLoading, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
+  const [lastOrderDetails, setLastOrderDetails] = useState(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -31,40 +30,53 @@ const HomePage = () => {
     setIsLoading(true);
     const userDetailsData = await userDetailsData1();
     if (userDetailsData) {
-      setUserDetails(userDetailsData);
+      setUserDetails(userDetailsData.userDetails);
+      setLastOrderDetails(userDetailsData.latestOrder);
     }
     setIsLoading(false); // Reset loading state after data is fetched
   };
 
-  const isHighAmountPending =
-    parseInt(amountPending.replace(/[^0-9]/g, ""), 10) > 5000;
-
-  // Fetch user details from API
+  // Fetch user details and last order details from API
   const userDetailsData1 = async () => {
     try {
-      const customerId = await AsyncStorage.getItem("customerId");
-      const response = await fetch(
-        `http://${home}:8090/userDetails?customerId=${customerId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const token = await AsyncStorage.getItem("userAuthToken");
+      const response = await fetch(`http://${ipAddress}:8090/userDetails`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const userGetResponse = await response.json();
       if (!response.ok || !userGetResponse.status) {
-        Alert.alert("Failed", user.message || "Something went wrong");
+        Alert.alert(
+          "Failed",
+          userGetResponse.message || "Something went wrong"
+        );
         setIsLoading(false);
         return;
       }
 
+      // Extract user details and latest order details
       const userDetails = {
         customerName: userGetResponse.user.customerName,
         customerID: userGetResponse.user.customerId,
         route: userGetResponse.user.route,
       };
-      return userDetails;
+
+      const latestOrder = userGetResponse.latestOrder;
+      const lastIndentDate = latestOrder?.placedOn || "";
+      const totalAmount = latestOrder?.totalAmount || 0;
+      const orderType = latestOrder?.orderType || "";
+
+      return {
+        userDetails,
+        latestOrder: {
+          lastIndentDate,
+          totalAmount,
+          orderType,
+        },
+      };
     } catch (err) {
       console.error("User details fetch error:", err);
       setIsLoading(false);
@@ -72,8 +84,10 @@ const HomePage = () => {
     }
   };
 
-  // Destructure userDetails or use empty object to prevent errors
+  // Destructure userDetails and lastOrderDetails or use empty object to prevent errors
   const { customerName, customerID, route } = userDetails || {};
+  const { lastIndentDate, totalAmount, orderType } = lastOrderDetails || {};
+
   return (
     <View style={styles.container}>
       {/* Header section with logo */}
@@ -88,7 +102,7 @@ const HomePage = () => {
           style={styles.logo}
         />
         <Text style={styles.logoText}>
-          <Text style={styles.boldText}>SL Enterprises</Text> {"\n"}
+          <Text style={styles.boldText}>SL Enterprises</Text> {"\n" + "\n"}
           Proprietor Lokesh Naidu
         </Text>
       </View>
@@ -112,7 +126,8 @@ const HomePage = () => {
       <View
         style={[
           styles.card,
-          isHighAmountPending && styles.highAmountCard,
+          parseInt(amountPending.replace(/[^0-9]/g, ""), 10) > 5000 &&
+            styles.highAmountCard,
           styles.borderRadiusCard,
         ]}
       >
@@ -124,21 +139,33 @@ const HomePage = () => {
         </View>
       </View>
 
-      {/* Active Indent Section */}
-      <View style={[styles.card, styles.borderRadiusCard]}>
+      {/* Active Indent Section (Last Order) */}
+      <View style={styles.lastIndentCard}>
         <View style={styles.cardContent}>
-          <View>
-            <Text style={styles.cardText}>Active Indent</Text>
-            <Text style={styles.cardText}>Date: {activeIndentDate}</Text>
-          </View>
-          <View style={styles.indentDetails}>
-            <Text style={styles.indentAmount}>{activeIndentAmount}</Text>
-            <MaterialIcons
-              name="keyboard-arrow-right"
-              size={24}
-              color="#ffcc00"
-            />
-          </View>
+          {lastIndentDate ? (
+            <>
+              <View>
+                <Text style={styles.cardText}>Last Indent:</Text>
+                <Text style={styles.cardText}>{orderType} Order</Text>
+                <Text style={styles.cardText}>
+                  Date:{" "}
+                  {lastIndentDate
+                    ? new Date(lastIndentDate).toLocaleDateString()
+                    : "N/A"}
+                </Text>
+              </View>
+              <View style={styles.indentDetails}>
+                <Text style={styles.indentAmount}>₹ {totalAmount}</Text>
+                <MaterialIcons
+                  name="keyboard-arrow-right"
+                  size={24}
+                  color="#ffcc00"
+                />
+              </View>
+            </>
+          ) : (
+            <Text style={styles.noOrdersText}>No Orders</Text>
+          )}
         </View>
       </View>
     </View>
@@ -248,6 +275,21 @@ const styles = StyleSheet.create({
   },
   borderRadiusCard: {
     borderRadius: 50,
+  },
+  lastIndentCard: {
+    backgroundColor: "#fff",
+    padding: 20,
+    margin: 10,
+    borderRadius: 15,
+    elevation: 3,
+    borderColor: "#f0f0f0",
+  },
+  noOrdersText: {
+    fontSize: 18,
+    color: "#999",
+    textAlign: "center",
+    // marginTop: 20,
+    fontWeight: "bold",
   },
 });
 

@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "start:home": "cross-env ENV=home npx expo start",
+    "start:work": "cross-env ENV=work npx expo start"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
@@ -14,6 +16,7 @@
     "@react-navigation/bottom-tabs": "^7.0.3",
     "@react-navigation/native": "^7.0.2",
     "@react-navigation/stack": "^7.0.2",
+    "cross-env": "^7.0.3",
     "expo": "~52.0.7",
     "expo-status-bar": "~2.0.0",
     "jwt-decode": "^4.0.0",
