@@ -1,5 +1,6 @@
 const moment = require("moment/moment");
 const { orderModel } = require("../dbUtils/ordersModel");
+const { isUserExists } = require("./dbUtility");
 
 const placeOrder = async (customerId, orderDetails) => {
   try {
@@ -48,6 +49,32 @@ const placeOrder = async (customerId, orderDetails) => {
   }
 };
 
+const checkOrderService = async (customerId, orderType, orderDetails) => {
+  try {
+    const isUser = await isUserExists(customerId);
+    if (!isUser) {
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: "User doesn't exists.",
+        },
+      };
+    }
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        message: "Valid order, can proceed further.",
+        data: { orderType, orderDetails },
+      },
+    };
+  } catch (error) {
+    console.error("Error in checkOrderService service:", error);
+    throw new Error(error.message);
+  }
+};
+
 const orderHistoryService = async (customerId) => {
   const orders = await orderModel.find({ customerId });
 
@@ -83,4 +110,5 @@ const orderHistoryService = async (customerId) => {
 module.exports = {
   placeOrder,
   orderHistoryService,
+  checkOrderService,
 };

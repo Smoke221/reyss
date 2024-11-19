@@ -1,4 +1,9 @@
-const { placeOrder, orderHistoryService } = require("../services/orderService");
+const { default: mongoose } = require("mongoose");
+const {
+  placeOrder,
+  orderHistoryService,
+  checkOrderService,
+} = require("../services/orderService");
 
 const placeOrderController = async (req, res) => {
   try {
@@ -22,12 +27,59 @@ const placeOrderController = async (req, res) => {
   }
 };
 
+const checkOrderController = async (req, res) => {
+  try {
+    const customerId = req.userID;
+
+    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.status(400).json({
+        status: false,
+        message: "Id is not valid.",
+      });
+    }
+
+    const { products, orderType } = req.body;
+
+    // Validate orderType
+    if (!orderType || !["AM", "PM"].includes(orderType)) {
+      return res.status(400).json({
+        status: false,
+        message: "Not a valid order type.",
+      });
+    }
+    // Validate products array
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Products list is empty.",
+      });
+    }
+
+    const checkResult = await checkOrderService(
+      customerId,
+      orderType,
+      products
+    );
+    res.status(checkResult.statusCode).send(checkResult.response)
+    return {
+      status: checkResult.status,
+      message: checkResult.message,
+      data: checkResult.data,
+    };
+  } catch (error) {
+    console.error("Error in placeOrderController:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 const orderHistoryController = async (req, res) => {
   const customerId = req.userID;
 
   const getResponse = await orderHistoryService(customerId);
   console.log(getResponse);
-  
 
   res.status(200).json(getResponse);
 };
@@ -35,4 +87,5 @@ const orderHistoryController = async (req, res) => {
 module.exports = {
   placeOrderController,
   orderHistoryController,
+  checkOrderController,
 };

@@ -1,24 +1,35 @@
 const jwt = require("jsonwebtoken");
-const { userModel } = require("../dbUtils/userModel");
+const { findUserByUserName, getUserById } = require("./dbUtility");
 
 const loginUser = async (username, password) => {
   try {
-    // Find the user by username
-    const user = await userModel.findOne({ username });
-
-    // Check if user exists and if the password matches
-    if (!user || user.password !== password) {
-      throw new Error("Invalid username or password");
+    const user = await findUserByUserName(username);
+    if (user.statusCode) {
+      return user;
     }
-
-    // Generate JWT token
+    if (user.password !== password) {
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: "Incorrect password.",
+        },
+      };
+    }
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    return { token, user };
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        message: "Login successful",
+        data: { token, user },
+      },
+    };
   } catch (err) {
     throw new Error(err.message || "Internal Server Error");
   }
@@ -26,13 +37,7 @@ const loginUser = async (username, password) => {
 
 const getUserDetailsByCustomerId = async (customerId) => {
   try {
-    const user = await userModel.findById(customerId).select('-password');
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return user;
+    return await getUserById(customerId);
   } catch (err) {
     throw new Error(err.message || "Internal Server Error");
   }

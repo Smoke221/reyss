@@ -11,21 +11,24 @@ const loginController = async (req, res) => {
     });
   }
   try {
-    const { token, user } = await userService.loginUser(username, password);
+    const loginResponse = await userService.loginUser(username, password);
+
+    if (loginResponse.statusCode !== 200) {
+      return res.status(loginResponse.statusCode).json({
+        status: loginResponse.response.status,
+        message: loginResponse.response.message,
+      });
+    }
 
     console.log("Login successful for username:", username);
-    return res.status(200).json({
-      status: true,
-      message: "Login successful.",
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-      },
+    res.status(200).json({
+      status: loginResponse.response.status,
+      message: loginResponse.response.message,
+      token: loginResponse.response.data.token,
     });
   } catch (err) {
     console.error("Error during login:", err.message);
-    return res.status(401).json({
+    return res.status(500).json({
       status: false,
       message: "Internal server error.",
     });
@@ -33,30 +36,35 @@ const loginController = async (req, res) => {
 };
 
 const userDetailsController = async (req, res) => {
-  const { customerId } = req.query;
-
-  console.log(`Fetching details for customerId: ${customerId}`);
-  if (!mongoose.Types.ObjectId.isValid(customerId)) {
-    return res.status(400).json({
-      status: false,
-      message: "Invalid customerId provided.",
-    });
-  }
-
   try {
-    const userDetails = await userService.getUserDetailsByCustomerId(
-      customerId
-    );
+    const customerId = req.userID;
 
-    console.log("User details fetched successfully");
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid customerId provided.",
+      });
+    }
+
+    const result = await userService.getUserDetailsByCustomerId(customerId);
+
+    if (!result || !result.latestOrder) {
+      return res.status(404).json({
+        status: false,
+        message: "User or order not found.",
+      });
+    }
+
+    console.log("User details and latest order fetched successfully");
     return res.status(200).json({
       status: true,
-      message: "User details fetched successfully",
-      user: userDetails,
+      message: "User details and latest order fetched successfully",
+      user: result.user,
+      latestOrder: result.latestOrder,
     });
   } catch (err) {
     console.error("Error fetching user details:", err.message);
-    return res.status(400).json({
+    return res.status(500).json({
       status: false,
       message:
         err.message || "Unable to fetch user details. Please try again later.",
