@@ -7,8 +7,11 @@ import {
   ScrollView,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import LogOutButton from "../LogoutButton";
+import { useNavigation } from "@react-navigation/native";
 
 const ProfilePage = () => {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -74,6 +77,7 @@ const ProfilePage = () => {
           <MaterialIcons name="keyboard-arrow-down" size={24} color="#ffcc00" />
         </TouchableOpacity>
       </ScrollView>
+      <LogOutButton navigation={navigation} />
 
       {/* Footer */}
       <View style={styles.footer}>
