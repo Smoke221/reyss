@@ -4,15 +4,19 @@ const userService = require("../services/userService");
 const loginController = async (req, res) => {
   const { username, password } = req.body;
 
-  console.log(`Login attempt for username: ${username}`);
-
+  if (!username || !password) {
+    return res.status(400).json({
+      status: false,
+      message: "Username and password are required.",
+    });
+  }
   try {
     const { token, user } = await userService.loginUser(username, password);
 
     console.log("Login successful for username:", username);
     return res.status(200).json({
       status: true,
-      message: "Login success",
+      message: "Login successful.",
       token,
       user: {
         id: user._id,
@@ -23,7 +27,7 @@ const loginController = async (req, res) => {
     console.error("Error during login:", err.message);
     return res.status(401).json({
       status: false,
-      message: err.message || "Internal server error. Please try again later.",
+      message: "Internal server error.",
     });
   }
 };
