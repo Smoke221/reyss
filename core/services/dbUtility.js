@@ -48,4 +48,14 @@ const isUserExists = async (customerId) => {
   }
 };
 
-module.exports = { isUserExists, findUserByUserName, getUserById };
+const getOrdersByCustomerId = async (customerId) => {
+  try {
+    const orders = await orderModel.find({ customerId });
+    return orders;
+  } catch (error) {
+    console.error("Error in dbutility --> getOrdersByCustomerId.");
+    throw error;
+  }
+};
+
+module.exports = { isUserExists, findUserByUserName, getOrdersByCustomerId };

@@ -1,6 +1,6 @@
 const moment = require("moment/moment");
 const { orderModel } = require("../dbUtils/ordersModel");
-const { isUserExists } = require("./dbUtility");
+const { isUserExists, getOrdersByCustomerId } = require("./dbUtility");
 
 const placeOrder = async (customerId, orderDetails) => {
   try {
@@ -76,24 +76,24 @@ const checkOrderService = async (customerId, orderType, orderDetails) => {
 };
 
 const orderHistoryService = async (customerId) => {
-  const orders = await orderModel.find({ customerId });
+  const orders = await getOrdersByCustomerId(customerId);
 
   // Function to group orders by date and type (AM/PM)
   const groupOrdersByDateAndType = (orders) => {
     const result = {};
 
     orders.forEach((order) => {
-      const deliveryDate = order.deliveryOn.toISOString().split("T")[0];
+      const orderDate = order.placedOn.toISOString().split("T")[0];
       const orderType = order.orderType;
 
       const totalQuantity = order.products.reduce(
         (total, product) => total + product.quantity,
         0
       );
-      if (!result[deliveryDate]) {
-        result[deliveryDate] = {};
+      if (!result[orderDate]) {
+        result[orderDate] = {};
       }
-      result[deliveryDate][orderType] = {
+      result[orderDate][orderType] = {
         quantity: totalQuantity,
         route: order.route,
         totalAmount: order.totalAmount,
