@@ -58,6 +58,12 @@ const userSchema = new mongoose.Schema(
         type: Date,
       },
     },
+    defaultOrder: [
+      {
+        product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+        quantity: { type: Number, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );
