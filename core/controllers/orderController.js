@@ -3,21 +3,30 @@ const {
   placeOrder,
   orderHistoryService,
   checkOrderService,
+  placeOrderService,
 } = require("../services/orderService");
 
 const placeOrderController = async (req, res) => {
   try {
     const customerId = req.userID;
+    const { products, orderType } = req.body;
 
-    const { products, totalAmount, orderType, amountPaid } = req.body;
-
-    const result = await placeOrder(customerId, {
-      products,
-      totalAmount,
+    const checkResult = await checkOrderService(
+      customerId,
       orderType,
-      amountPaid,
-    });
-    res.status(201).json(result);
+      products
+    );
+
+    const orderData = {
+      customerId,
+      orderType,
+      products,
+      totalAmount: checkResult.response.data.totalAmount,
+    };
+
+    const result = await placeOrderService(customerId, orderData);
+
+    return res.status(result.statusCode).json(result.response);
   } catch (error) {
     console.error("Error in placeOrderController:", error);
     res.status(500).json({
@@ -60,14 +69,13 @@ const checkOrderController = async (req, res) => {
       orderType,
       products
     );
-    res.status(checkResult.statusCode).send(checkResult.response)
-    return {
-      status: checkResult.status,
-      message: checkResult.message,
-      data: checkResult.data,
-    };
+
+    if (!checkResult.status) {
+      return res.status(checkResult.statusCode).json(checkResult.response);
+    }
+    return res.status(checkResult.statusCode).json(checkResult.response);
   } catch (error) {
-    console.error("Error in placeOrderController:", error);
+    console.error("Error in checkOrderController:", error);
     res.status(500).json({
       status: "error",
       message: error.message,

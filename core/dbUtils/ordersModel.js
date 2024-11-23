@@ -38,10 +38,10 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    deliveryOn: {
-      type: Date,
-      required: true,
-    },
+    // deliveryOn: {
+    //   type: Date,
+    //   required: true,
+    // },
     orderType: {
       type: String,
       required: true,

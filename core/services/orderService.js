@@ -1,51 +1,38 @@
 const moment = require("moment/moment");
 const { orderModel } = require("../dbUtils/ordersModel");
 const { isUserExists, getOrdersByCustomerId } = require("./dbUtility");
+const { productModel } = require("../dbUtils/productModel");
 
-const placeOrder = async (customerId, orderDetails) => {
+const placeOrderService = async (
+  customerId,
+  { products, orderType, totalAmount }
+) => {
   try {
-    const { products, totalAmount, orderType, amountPaid } = orderDetails;
-
-    if (!products || products.length === 0) {
-      throw new Error("No products to place an order.");
-    }
-
-    if (totalAmount <= 0) {
-      throw new Error("total price invalid.");
-    }
-
-    let deliveryOn;
-    const currentDate = moment();
-
-    if (orderType === "AM") {
-      deliveryOn = currentDate.add(1, "day").toDate();
-    } else if (orderType === "PM") {
-      deliveryOn = currentDate.toDate();
-    } else {
-      return res
-        .status(400)
-        .json({ error: "Order type must be either 'AM' or 'PM'" });
-    }
-
     const newOrder = new orderModel({
       customerId,
-      products,
       orderType,
+      products,
       totalAmount,
-      deliveryOn,
-      amountPaid: amountPaid || false,
+      placedOn: new Date(),
     });
 
     await newOrder.save();
 
     return {
-      status: true,
-      message: "Order placed successfully",
-      order: newOrder,
+      statusCode: 200,
+      response: {
+        status: true,
+        message: "Order place successfully.",
+        orderId: newOrder._id,
+        customerId: newOrder.customerId,
+        orderType: newOrder.orderType,
+        products: newOrder.products,
+        totalAmount: newOrder.totalAmount,
+      },
     };
   } catch (error) {
-    console.error("Error in placeOrder service:", error);
-    throw new Error(error.message || "Failed to place the order");
+    console.error("Error in placeOrderService:", error);
+    throw new Error("Failed to place the order.");
   }
 };
 
@@ -57,20 +44,44 @@ const checkOrderService = async (customerId, orderType, orderDetails) => {
         statusCode: 400,
         response: {
           status: false,
-          message: "User doesn't exists.",
+          message: "User doesn't exist.",
         },
       };
+    }
+
+    let totalAmount = 0;
+    const invalidProducts = [];
+
+    for (const product of orderDetails) {
+      const { productId, quantity } = product;
+
+      const productData = await productModel.findById(productId);
+      if (!productData) {
+        invalidProducts.push(productId);
+        continue;
+      }
+
+      if (!Number.isInteger(quantity) || quantity <= 0) {
+        invalidProducts.push(productId);
+        continue;
+      }
+
+      totalAmount += productData.price * quantity;
+    }
+
+    if (invalidProducts.length > 0) {
+      throw new Error(`Invalid products found: ${invalidProducts.join(", ")}`);
     }
     return {
       statusCode: 200,
       response: {
         status: true,
         message: "Valid order, can proceed further.",
-        data: { customerId, orderType, orderDetails },
+        data: { customerId, orderType, orderDetails, totalAmount },
       },
     };
   } catch (error) {
-    console.error("Error in checkOrderService service:", error);
+    console.error("Error in checkOrderService:", error);
     throw new Error(error.message);
   }
 };
@@ -108,7 +119,7 @@ const orderHistoryService = async (customerId) => {
 };
 
 module.exports = {
-  placeOrder,
+  placeOrderService,
   orderHistoryService,
   checkOrderService,
 };

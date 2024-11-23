@@ -1,4 +1,5 @@
 const { orderModel } = require("../dbUtils/ordersModel");
+const { productModel } = require("../dbUtils/productModel");
 const { userModel } = require("../dbUtils/userModel");
 
 const findUserByUserName = async (userName) => {
@@ -58,4 +59,19 @@ const getOrdersByCustomerId = async (customerId) => {
   }
 };
 
-module.exports = { isUserExists, findUserByUserName, getOrdersByCustomerId };
+const getProducts = async () => {
+  try {
+    const products = await productModel.find();
+    return products;
+  } catch (error) {
+    console.error("Error in dbutility --> getProducts.");
+    throw error;
+  }
+};
+
+module.exports = {
+  isUserExists,
+  findUserByUserName,
+  getOrdersByCustomerId,
+  getProducts,
+};
