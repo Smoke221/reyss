@@ -66,7 +66,7 @@ const checkOrderService = async (customerId, orderType, orderDetails) => {
       response: {
         status: true,
         message: "Valid order, can proceed further.",
-        data: { orderType, orderDetails },
+        data: { customerId, orderType, orderDetails },
       },
     };
   } catch (error) {
