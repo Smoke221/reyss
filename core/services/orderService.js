@@ -1,6 +1,11 @@
 const moment = require("moment/moment");
 const { orderModel } = require("../dbUtils/ordersModel");
-const { isUserExists, getOrdersByCustomerId } = require("./dbUtility");
+const {
+  isUserExists,
+  getOrdersByCustomerId,
+  getOrder,
+  getProductById,
+} = require("./dbUtility");
 const { productModel } = require("../dbUtils/productModel");
 
 const placeOrderService = async (
@@ -106,8 +111,9 @@ const orderHistoryService = async (customerId) => {
       }
       result[orderDate][orderType] = {
         quantity: totalQuantity,
-        route: order.route,
+        route: order.route, 
         totalAmount: order.totalAmount,
+        orderId: order._id.toString()
       };
     });
 
@@ -118,8 +124,44 @@ const orderHistoryService = async (customerId) => {
   return groupedOrders;
 };
 
+const getOrderService = async (customerId, orderId) => {
+  try {
+    const order = await getOrder(customerId, orderId);
+
+    if (!order) {
+      throw new Error("Order not found.");
+    }
+
+    const productsWithDetails = await Promise.all(
+      order[0].products.map(async (product) => {
+        const productDetails = await getProductById(product.productId);
+        return {
+          ...productDetails._doc,
+          quantity: product.quantity,
+        };
+      })
+    );
+
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        message: "Fetched order details.",
+        data: {
+          ...order[0]._doc,
+          products: productsWithDetails,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("Error in getOrderService:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   placeOrderService,
   orderHistoryService,
   checkOrderService,
+  getOrderService,
 };

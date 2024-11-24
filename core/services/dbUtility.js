@@ -69,9 +69,48 @@ const getProducts = async () => {
   }
 };
 
+const getOrder = async (customerId, orderId) => {
+  try {
+    const order = await orderModel.find({ customerId, _id: orderId });
+    return order;
+  } catch (error) {
+    console.error("Error in dbutility --> getOrder.");
+    throw error;
+  }
+};
+
+const getProductById = async (productId) => {
+  try {
+    const product = await productModel.findById(productId);
+    return product;
+  } catch (error) {
+    console.error("Error in dbutility --> getProductById.");
+    throw error;
+  }
+};
+
+const lastPMOrder = async (orderId) => {
+  try {
+    const order = await orderModel
+      .findOne({
+        customerId: order.customerId,
+        orderType: "PM",
+      })
+      .sort({ placedOn: -1 });
+    return order;
+  } catch (error) {
+    console.error("Error in dbutility --> getProductById.");
+    throw error;
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
   getOrdersByCustomerId,
   getProducts,
+  getUserById,
+  getOrder,
+  getProductById,
+  lastPMOrder,
 };

@@ -4,6 +4,7 @@ const {
   orderHistoryService,
   checkOrderService,
   placeOrderService,
+  getOrderService,
 } = require("../services/orderService");
 
 const placeOrderController = async (req, res) => {
@@ -92,8 +93,37 @@ const orderHistoryController = async (req, res) => {
   res.status(200).json(getResponse);
 };
 
+const getOrderController = async (req, res) => {
+  try {
+    const customerId = req.userID;
+    const { orderId } = req.query;
+
+    if (
+      !customerId ||
+      !mongoose.Types.ObjectId.isValid(customerId) ||
+      !orderId ||
+      !mongoose.Types.ObjectId.isValid(orderId)
+    ) {
+      return res.status(400).json({
+        status: false,
+        message: "Id is not valid.",
+      });
+    }
+
+    const getResponse = await getOrderService(customerId, orderId);
+    return res.status(getResponse.statusCode).json(getResponse.response);
+  } catch (error) {
+    console.error("Error in getOrderController:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   placeOrderController,
   orderHistoryController,
   checkOrderController,
+  getOrderController,
 };
