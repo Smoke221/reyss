@@ -67,9 +67,9 @@ const IndentPage = () => {
     };
   }, [orders, selectedDate]);
 
-  const handleOrderClick = (orderDetails, shift) => {
+  const handleOrderClick = (order, shift) => {
     navigation.navigate("PlaceOrderPage", {
-      orderDetails,
+      order,
       selectedDate,
       shift,
     });
@@ -124,6 +124,9 @@ const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => (
   <View style={styles.orderCard}>
     <View style={styles.orderContent}>
       <Text style={styles.orderType}>{shift}</Text>
+      <Text style={styles.orderText}>
+        {selectedDate.split("-").reverse().join("-")}
+      </Text>
       {order ? (
         <>
           <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
@@ -138,7 +141,7 @@ const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => (
 
     <TouchableOpacity
       style={styles.arrowButton}
-      onPress={() => onOrderClick(order ? order.items : null, shift)}
+      onPress={() => onOrderClick(order ? order : null, shift, selectedDate)}
     >
       <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
     </TouchableOpacity>
