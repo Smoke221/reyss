@@ -1,17 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
-import { Calendar } from "react-native-calendars";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
 import { ipAddress } from "../../urls";
+import CalendarComponent from "./calendar";
+import OrdersList from "./orderList";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
@@ -58,7 +52,7 @@ const IndentPage = () => {
     setSelectedDate(dateString);
   };
 
-  // Memoizing orders for the selected date to prevent recalculations on every render
+  // Memoizing orders for the selected date
   const { amOrder, pmOrder } = useMemo(() => {
     const dayOrders = orders[selectedDate] || {};
     return {
@@ -67,14 +61,6 @@ const IndentPage = () => {
     };
   }, [orders, selectedDate]);
 
-  const handleOrderClick = (order, shift) => {
-    navigation.navigate("PlaceOrderPage", {
-      order,
-      selectedDate,
-      shift,
-    });
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -82,71 +68,21 @@ const IndentPage = () => {
       </View>
 
       {/* Calendar Component */}
-      <Calendar
-        onDayPress={handleDatePress}
-        markedDates={{ [selectedDate]: { selected: true } }}
-        theme={{
-          selectedDayBackgroundColor: "#ffcc00",
-          todayTextColor: "#ffcc00",
-        }}
-        renderArrow={(direction) => (
-          <MaterialIcons
-            name={direction === "left" ? "arrow-back" : "arrow-forward"}
-            size={24}
-            color="#ffcc00"
-          />
-        )}
+      <CalendarComponent
+        selectedDate={selectedDate}
+        handleDatePress={handleDatePress}
       />
 
-      {/* Order Details */}
-      <ScrollView style={styles.ordersContainer}>
-        {/* AM Order */}
-        <OrderCard
-          shift="AM"
-          order={amOrder}
-          selectedDate={selectedDate}
-          onOrderClick={handleOrderClick}
-        />
-
-        {/* PM Order */}
-        <OrderCard
-          shift="PM"
-          order={pmOrder}
-          selectedDate={selectedDate}
-          onOrderClick={handleOrderClick}
-        />
-      </ScrollView>
+      {/* Orders List */}
+      <OrdersList
+        amOrder={amOrder}
+        pmOrder={pmOrder}
+        selectedDate={selectedDate}
+        navigation={navigation}
+      />
     </View>
   );
 };
-
-const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => (
-  <View style={styles.orderCard}>
-    <View style={styles.orderContent}>
-      <Text style={styles.orderType}>{shift}</Text>
-      <Text style={styles.orderText}>
-        {selectedDate.split("-").reverse().join("-")}
-      </Text>
-      {order ? (
-        <>
-          <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
-          <Text style={styles.orderText}>
-            Total Amount: ₹{order.totalAmount}
-          </Text>
-        </>
-      ) : (
-        <Text style={styles.naText}>N/A</Text>
-      )}
-    </View>
-
-    <TouchableOpacity
-      style={styles.arrowButton}
-      onPress={() => onOrderClick(order ? order : null, shift, selectedDate)}
-    >
-      <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
-    </TouchableOpacity>
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -164,34 +100,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#fff",
-  },
-  ordersContainer: {
-    flex: 1,
-    padding: 10,
-  },
-  orderCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
-  },
-  orderType: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  orderText: {
-    fontSize: 16,
-    marginVertical: 2,
-  },
-  naText: {
-    fontSize: 16,
-    color: "red",
-    marginVertical: 2,
-  },
-  arrowButton: {
-    position: "absolute",
-    right: 10,
-    top: 20,
   },
 });
 
