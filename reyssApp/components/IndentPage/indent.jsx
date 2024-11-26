@@ -18,6 +18,21 @@ const IndentPage = () => {
     fetchOrders();
   }, []);
 
+  const dayOrderQuantity = useMemo(() => {
+    const texts = {};
+    Object.keys(orders).forEach((date) => {
+      const amOrder = orders[date]?.AM;
+      const pmOrder = orders[date]?.PM;
+
+      const totalQuantity = (amOrder?.quantity || 0) + (pmOrder?.quantity || 0);
+
+      if (totalQuantity > 0) {
+        texts[date] = `${totalQuantity}`;
+      }
+    });
+    return texts;
+  }, [orders]);
+
   const fetchOrders = async () => {
     try {
       const customerId = await AsyncStorage.getItem("customerId");
@@ -41,6 +56,8 @@ const IndentPage = () => {
       }
 
       const data = await response.json();
+      console.log(data);
+
       setOrders(data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -71,6 +88,7 @@ const IndentPage = () => {
       <CalendarComponent
         selectedDate={selectedDate}
         handleDatePress={handleDatePress}
+        dayOrderQuantity={dayOrderQuantity}
       />
 
       {/* Orders List */}
