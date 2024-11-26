@@ -40,7 +40,9 @@ const PlaceOrderPage = ({ route }) => {
     if (order) {
       fetchOrderDetails(order.orderId);
     } else {
-      setLoading(false); // No order to fetch, just display a message
+      if (isPastDate && !orderDetails) {
+        showAlertAndGoBack();
+      }
     }
   }, [order]);
 
@@ -81,6 +83,26 @@ const PlaceOrderPage = ({ route }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const showAlertAndGoBack = () => {
+    Alert.alert(
+      "No Orders Found",
+      "There are no orders for this date.",
+      [
+        {
+          text: "OK",
+          // onPress: () => {
+          //   navigation.goBack();
+          // },
+        },
+      ],
+      { cancelable: false }
+    );
+
+    setTimeout(() => {
+      navigation.goBack();
+    }, 3000);
   };
 
   const handleSubmit = () => {
@@ -124,7 +146,8 @@ const PlaceOrderPage = ({ route }) => {
             <OrderProductsList products={orderDetails.products} />
           </>
         ) : (
-          <ErrorMessage message="There are no orders for this date." />
+          // <ErrorMessage message="There are no orders for this date." />
+          <></>
         )
       ) : (
         <View>
