@@ -31,6 +31,7 @@ const getUserById = async (customerId) => {
 
     return {
       user,
+      defaultOrder: user.defaultOrder || [],
       latestOrder: latestOrder || [],
     };
   } catch (error) {

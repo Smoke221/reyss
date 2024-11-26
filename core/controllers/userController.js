@@ -61,6 +61,7 @@ const userDetailsController = async (req, res) => {
       message: "User details and latest order fetched successfully",
       user: result.user,
       latestOrder: result.latestOrder,
+      defaultOrder: result.defaultOrder,
     });
   } catch (err) {
     console.error("Error fetching user details:", err.message);

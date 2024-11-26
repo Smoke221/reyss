@@ -7,6 +7,7 @@ const {
   getProductById,
 } = require("./dbUtility");
 const { productModel } = require("../dbUtils/productModel");
+const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 
 const placeOrderService = async (
   customerId,
@@ -111,9 +112,9 @@ const orderHistoryService = async (customerId) => {
       }
       result[orderDate][orderType] = {
         quantity: totalQuantity,
-        route: order.route, 
+        route: order.route,
         totalAmount: order.totalAmount,
-        orderId: order._id.toString()
+        orderId: order._id.toString(),
       };
     });
 
@@ -131,16 +132,7 @@ const getOrderService = async (customerId, orderId) => {
     if (!order) {
       throw new Error("Order not found.");
     }
-
-    const productsWithDetails = await Promise.all(
-      order[0].products.map(async (product) => {
-        const productDetails = await getProductById(product.productId);
-        return {
-          ...productDetails._doc,
-          quantity: product.quantity,
-        };
-      })
-    );
+    const productsWithDetails = await getProductsWithDetails(order[0].products);
 
     return {
       statusCode: 200,

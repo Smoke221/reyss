@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { findUserByUserName, getUserById } = require("./dbUtility");
+const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 
 const loginUser = async (username, password) => {
   try {
@@ -37,7 +38,14 @@ const loginUser = async (username, password) => {
 
 const getUserDetailsByCustomerId = async (customerId) => {
   try {
-    return await getUserById(customerId);
+    const { user, defaultOrder, latestOrder } = await getUserById(customerId);
+
+    const detailedDefaultOrder = await getProductsWithDetails(defaultOrder);
+    return {
+      user,
+      defaultOrder: detailedDefaultOrder,
+      latestOrder,
+    };
   } catch (err) {
     throw new Error(err.message || "Internal Server Error");
   }
