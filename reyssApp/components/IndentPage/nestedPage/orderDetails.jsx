@@ -4,10 +4,12 @@ import { View, Text, StyleSheet } from "react-native";
 const OrderDetails = ({ orderDetails, selectedDate, shift }) => {
   return (
     <View style={styles.orderInfoContainer}>
-      <Text style={styles.orderText}>Order ID: {orderDetails._id}</Text>
+      {orderDetails._id && (
+        <Text style={styles.orderText}>Order ID: {orderDetails._id}</Text>
+      )}
       <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text>
-      <Text style={styles.orderText}>Customer Name: {/* Customer Name */}</Text>
-      <Text style={styles.orderText}>Route: {/* Route info here */}</Text>
+      {/* <Text style={styles.orderText}>Customer Name: Customer Name</Text> */}
+      {/* <Text style={styles.orderText}>Route: Route info here</Text> */}
       <Text style={styles.orderText}>Shift: {shift}</Text>
       <Text style={styles.orderText}>
         Total Amount: ₹{orderDetails.totalAmount}

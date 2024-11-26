@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Alert, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import moment from "moment"; // Use moment to handle date comparison
+import moment from "moment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ipAddress } from "../../urls";
 import LoadingIndicator from "../general/Loader";
@@ -10,29 +10,31 @@ import OrderProductsList from "./nestedPage/orderProductsList";
 import BackButton from "../general/backButton";
 import SubmitButton from "./nestedPage/submitButton";
 import ErrorMessage from "../general/errorMessage";
+import OrderModal from "../general/orderModal";
 
 const PlaceOrderPage = ({ route }) => {
   const { order, selectedDate, shift } = route.params;
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [defaultOrder, setDefaultOrder] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const navigation = useNavigation();
 
-  // Alert to show when there are no orders and navigate back on dismissal
-  const showAlertAndGoBack = (message) => {
-    Alert.alert(
-      message,
-      [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
-      ],
-      { cancelable: false }
-    );
-  };
-
   const isPastDate = moment(selectedDate).isBefore(moment(), "day");
+
+  useEffect(() => {
+    const fetchDefaultOrder = async () => {
+      const storedOrder = await AsyncStorage.getItem("default");
+      if (storedOrder) {
+        setDefaultOrder(JSON.parse(storedOrder));
+        setShowModal(true); // Show the modal when default order is loaded
+      }
+      setLoading(false);
+    };
+
+    fetchDefaultOrder();
+  }, []);
 
   useEffect(() => {
     if (order) {
@@ -85,6 +87,16 @@ const PlaceOrderPage = ({ route }) => {
     console.log("Order submitted");
   };
 
+  const handleSelectOrder = () => {
+    // setOrderDetails(defaultOrder);
+    setShowModal(false);
+  };
+
+  const handleEditOrder = () => {
+    // navigation.navigate("EditOrderPage", { order: defaultOrder });
+    setShowModal(false);
+  };
+
   if (loading) {
     return <LoadingIndicator />;
   }
@@ -100,6 +112,7 @@ const PlaceOrderPage = ({ route }) => {
   return (
     <View style={styles.container}>
       <BackButton navigation={navigation} />
+
       {isPastDate ? (
         orderDetails ? (
           <>
@@ -121,6 +134,22 @@ const PlaceOrderPage = ({ route }) => {
               selectedDate={selectedDate}
               shift={shift}
             />
+          ) : defaultOrder ? (
+            <>
+              <OrderDetails
+                orderDetails={defaultOrder}
+                selectedDate={selectedDate}
+                shift={shift}
+              />
+              <OrderProductsList products={defaultOrder} />
+              {/* Modal will show automatically if the default order exists */}
+              <OrderModal
+                isVisible={showModal}
+                onClose={() => setShowModal(false)}
+                onSelect={handleSelectOrder}
+                onEdit={handleEditOrder}
+              />
+            </>
           ) : (
             <ErrorMessage message="No default order available." />
           )}

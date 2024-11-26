@@ -64,6 +64,11 @@ const HomePage = () => {
         route: userGetResponse.user.route,
       };
 
+      await AsyncStorage.setItem(
+        "default",
+        JSON.stringify(userGetResponse.defaultOrder)
+      );
+
       const latestOrder = userGetResponse.latestOrder;
       const lastIndentDate = latestOrder?.placedOn || "";
       const totalAmount = latestOrder?.totalAmount || 0;
