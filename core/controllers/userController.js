@@ -39,7 +39,7 @@ const userDetailsController = async (req, res) => {
   try {
     const customerId = req.userID;
 
-    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+    if (!customerId) {
       return res.status(400).json({
         status: false,
         message: "Invalid customerId provided.",

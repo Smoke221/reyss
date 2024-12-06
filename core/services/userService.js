@@ -5,9 +5,7 @@ const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 const loginUser = async (username, password) => {
   try {
     const user = await findUserByUserName(username);
-    if (user.statusCode) {
-      return user;
-    }
+
     if (user.password !== password) {
       return {
         statusCode: 400,
@@ -18,7 +16,7 @@ const loginUser = async (username, password) => {
       };
     }
     const token = jwt.sign(
-      { id: user._id, username: user.username },
+      { id: user.customer_id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -28,7 +26,7 @@ const loginUser = async (username, password) => {
       response: {
         status: true,
         message: "Login successful",
-        data: { token, user },
+        data: { token, user: user[0] },
       },
     };
   } catch (err) {
@@ -40,7 +38,10 @@ const getUserDetailsByCustomerId = async (customerId) => {
   try {
     const { user, defaultOrder, latestOrder } = await getUserById(customerId);
 
-    const detailedDefaultOrder = await getProductsWithDetails(defaultOrder);
+    let detailedDefaultOrder = defaultOrder
+      ? await getProductsWithDetails(defaultOrder)
+      : null;
+    // const detailedLatestOrder = await getProductsWithDetails(latestOrder);
     return {
       user,
       defaultOrder: detailedDefaultOrder,

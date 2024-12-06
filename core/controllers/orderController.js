@@ -19,9 +19,8 @@ const placeOrderController = async (req, res) => {
     );
 
     const orderData = {
-      customerId,
-      orderType,
       products,
+      orderType,
       totalAmount: checkResult.response.data.totalAmount,
     };
 
@@ -41,10 +40,10 @@ const checkOrderController = async (req, res) => {
   try {
     const customerId = req.userID;
 
-    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+    if (!customerId) {
       return res.status(400).json({
         status: false,
-        message: "Id is not valid.",
+        message: "Invalid customerId provided.",
       });
     }
 
@@ -88,7 +87,6 @@ const orderHistoryController = async (req, res) => {
   const customerId = req.userID;
 
   const getResponse = await orderHistoryService(customerId);
-  console.log(getResponse);
 
   res.status(200).json(getResponse);
 };
@@ -98,12 +96,7 @@ const getOrderController = async (req, res) => {
     const customerId = req.userID;
     const { orderId } = req.query;
 
-    if (
-      !customerId ||
-      !mongoose.Types.ObjectId.isValid(customerId) ||
-      !orderId ||
-      !mongoose.Types.ObjectId.isValid(orderId)
-    ) {
+    if (!customerId || !orderId) {
       return res.status(400).json({
         status: false,
         message: "Id is not valid.",
@@ -111,7 +104,7 @@ const getOrderController = async (req, res) => {
     }
 
     const getResponse = await getOrderService(customerId, orderId);
-    return res.status(getResponse.statusCode).json(getResponse.response);
+    return res.status(200).json(getResponse);
   } catch (error) {
     console.error("Error in getOrderController:", error);
     res.status(500).json({

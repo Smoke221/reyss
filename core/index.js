@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const { dbConnection } = require("./dbUtils/db");
 const userRouter = require("./routes/user");
 const orderRouter = require("./routes/order");
 const app = express();
@@ -22,7 +21,6 @@ app.get("/s", (req, res) => {
 const PORT = process.env.PORT || 8090;
 app.listen(PORT, async () => {
   try {
-    await dbConnection;
     console.log("Connected to database");
   } catch (err) {
     console.log(err.message);
