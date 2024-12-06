@@ -20,7 +20,7 @@ const OrderProductsList = ({ products }) => {
       <FlatList
         data={products}
         renderItem={renderItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.product_id}
       />
     </View>
   );

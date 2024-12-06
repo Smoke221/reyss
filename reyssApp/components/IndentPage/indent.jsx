@@ -56,9 +56,14 @@ const IndentPage = () => {
       }
 
       const data = await response.json();
-      console.log(data);
 
-      setOrders(data);
+      // Assuming the data uses epoch times, convert to the desired format
+      const transformedData = Object.keys(data).reduce((acc, epochTime) => {
+        const formattedDate = moment.unix(epochTime).format("YYYY-MM-DD");
+        acc[formattedDate] = data[epochTime];
+        return acc;
+      }, {});
+      setOrders(transformedData);
     } catch (error) {
       console.error("Error fetching orders:", error);
     }

@@ -11,6 +11,12 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ipAddress } from "../../urls";
 
+// Helper function to format epoch time
+const formatDate = (epochTime) => {
+  const date = new Date(epochTime * 1000);
+  return date.toLocaleDateString();
+};
+
 const HomePage = () => {
   const amountPending = "₹ 10,000";
   const [isLoading, setIsLoading] = useState(false);
@@ -59,8 +65,8 @@ const HomePage = () => {
 
       // Extract user details and latest order details
       const userDetails = {
-        customerName: userGetResponse.user.customerName,
-        customerID: userGetResponse.user.customerId,
+        customerName: userGetResponse.user.name,
+        customerID: userGetResponse.user.customer_id,
         route: userGetResponse.user.route,
       };
 
@@ -70,9 +76,9 @@ const HomePage = () => {
       );
 
       const latestOrder = userGetResponse.latestOrder;
-      const lastIndentDate = latestOrder?.placedOn || "";
-      const totalAmount = latestOrder?.totalAmount || 0;
-      const orderType = latestOrder?.orderType || "";
+      const lastIndentDate = latestOrder?.placed_on || "";
+      const totalAmount = latestOrder?.total_amount || 0;
+      const orderType = latestOrder?.order_type || "";
 
       return {
         userDetails,
@@ -153,10 +159,7 @@ const HomePage = () => {
                 <Text style={styles.cardText}>Last Indent:</Text>
                 <Text style={styles.cardText}>{orderType} Order</Text>
                 <Text style={styles.cardText}>
-                  Date:{" "}
-                  {lastIndentDate
-                    ? new Date(lastIndentDate).toLocaleDateString()
-                    : "N/A"}
+                  Date: {lastIndentDate ? formatDate(lastIndentDate) : "N/A"}
                 </Text>
               </View>
               <View style={styles.indentDetails}>

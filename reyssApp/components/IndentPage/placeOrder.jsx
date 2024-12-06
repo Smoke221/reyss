@@ -11,6 +11,7 @@ import BackButton from "../general/backButton";
 import SubmitButton from "./nestedPage/submitButton";
 import ErrorMessage from "../general/errorMessage";
 import OrderModal from "../general/orderModal";
+import axios from "axios";
 
 const PlaceOrderPage = ({ route }) => {
   const { order, selectedDate, shift } = route.params;
@@ -26,6 +27,7 @@ const PlaceOrderPage = ({ route }) => {
   useEffect(() => {
     const fetchDefaultOrder = async () => {
       const storedOrder = await AsyncStorage.getItem("default");
+      console.log(storedOrder);
       if (storedOrder) {
         setDefaultOrder(JSON.parse(storedOrder));
         setShowModal(true); // Show the modal when default order is loaded
@@ -73,11 +75,13 @@ const PlaceOrderPage = ({ route }) => {
 
       const data = await response.json();
 
-      if (data.status) {
-        setOrderDetails(data.data);
-      } else {
-        setError("Order details not found");
-      }
+      setOrderDetails(data)
+
+      // if (data.status) {
+      //   setOrderDetails(data);
+      // } else {
+      //   setError("Order details not found");
+      // }
     } catch (err) {
       setError(err.message || "Error fetching order details");
     } finally {
@@ -105,8 +109,50 @@ const PlaceOrderPage = ({ route }) => {
     }, 3000);
   };
 
-  const handleSubmit = () => {
-    console.log("Order submitted");
+  const handleSubmit = async () => {
+    try {
+      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      if (!userAuthToken) {
+        Alert.alert("Error", "Authorization token is missing.");
+        return;
+      }
+
+      const options = {
+        method: "POST",
+        url: `http://${ipAddress}:8090/place`,
+        data: {
+          products: defaultOrder.products,
+          orderType: shift,
+        },
+        headers: {
+          Authorization: `Bearer ${userAuthToken}`,
+          "Content-Type": "application/json",
+        },
+      };
+
+      const response = await axios(options);
+      if (response.status === 200) {
+        console.log("Order submitted successfully:", response.data);
+        Alert.alert("Success", "Order has been submitted successfully.");
+        // navigation.navigate("OrderHistoryPage");
+      } else {
+        throw new Error("Unexpected response status.");
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error("Server error:", error.response.data);
+        Alert.alert(
+          "Error",
+          error.response.data.message || "Server error occurred."
+        );
+      } else if (error.request) {
+        console.error("Network error:", error.request);
+        Alert.alert("Error", "Network error, please check your connection.");
+      } else {
+        console.error("Error:", error.message);
+        Alert.alert("Error", error.message || "An error occurred.");
+      }
+    }
   };
 
   const handleSelectOrder = () => {
@@ -130,6 +176,9 @@ const PlaceOrderPage = ({ route }) => {
       </View>
     );
   }
+
+  console.log(orderDetails, selectedDate, shift);
+  
 
   return (
     <View style={styles.container}>
@@ -164,7 +213,7 @@ const PlaceOrderPage = ({ route }) => {
                 selectedDate={selectedDate}
                 shift={shift}
               />
-              <OrderProductsList products={defaultOrder} />
+              <OrderProductsList products={defaultOrder.products} />
               {/* Modal will show automatically if the default order exists */}
               <OrderModal
                 isVisible={showModal}

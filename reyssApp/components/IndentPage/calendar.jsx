@@ -30,13 +30,12 @@ const CalendarComponent = ({
         />
       )}
       dayComponent={({ date, state }) => {
-        const customText = dayOrderQuantity[date.dateString] || '0';
+        const customText = dayOrderQuantity[date.dateString] || "0";
         const isSelected = date.dateString === selectedDate;
         const isToday = state === "today";
 
         return (
           <View style={styles.dayWrapper}>
-            {/* Custom text displayed above the day */}
             {customText && (
               <Text
                 style={[
@@ -55,7 +54,6 @@ const CalendarComponent = ({
               ]}
               onPress={() => handleDatePress(date)}
             >
-              {/* Day number */}
               <Text
                 style={[
                   styles.dayText,
@@ -82,7 +80,6 @@ const styles = StyleSheet.create({
   dayContainer: {
     alignItems: "center",
     justifyContent: "center",
-
   },
   dayText: {
     fontSize: 18,

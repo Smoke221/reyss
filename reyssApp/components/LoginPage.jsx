@@ -17,10 +17,12 @@ const LoginPage = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  
+  
   const handleLogin = async () => {
     setIsLoading(true);
     try {
+      console.log(ipAddress);
       const response = await fetch(`http://${ipAddress}:8090/auth`, {
         method: "POST",
         headers: {
