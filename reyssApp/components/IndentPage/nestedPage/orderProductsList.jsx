@@ -1,11 +1,22 @@
 import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, TextInput } from "react-native";
 
-const OrderProductsList = ({ products }) => {
-  const renderItem = ({ item }) => (
+const OrderProductsList = ({ products, isEditable, onQuantityChange }) => {
+  const renderItem = ({ item, index }) => (
     <View style={styles.itemRow}>
       <Text style={[styles.itemText, { flex: 6 }]}>{item.name}</Text>
-      <Text style={[styles.itemText, { flex: 1 }]}>{item.quantity}</Text>
+
+      {isEditable ? (
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          keyboardType="numeric"
+          value={String(item.quantity)}
+          onChangeText={(text) => onQuantityChange(text, index)}
+        />
+      ) : (
+        <Text style={[styles.itemText, { flex: 1 }]}>{item.quantity}</Text>
+      )}
+
       <Text style={[styles.itemText, { flex: 1 }]}>pkts</Text>
     </View>
   );
@@ -49,6 +60,16 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 16,
+  },
+  input: {
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    // padding: 5,
+    borderRadius: 5,
+    textAlign: "center",
+    width: 10,
+    marginHorizontal: 5,
   },
 });
 

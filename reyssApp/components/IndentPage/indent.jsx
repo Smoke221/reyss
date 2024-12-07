@@ -21,6 +21,7 @@ const IndentPage = () => {
   const dayOrderQuantity = useMemo(() => {
     const texts = {};
     Object.keys(orders).forEach((date) => {
+      console.log(`🪵 → date:`, orders[date])
       const amOrder = orders[date]?.AM;
       const pmOrder = orders[date]?.PM;
 

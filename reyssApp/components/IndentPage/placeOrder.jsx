@@ -21,6 +21,8 @@ const PlaceOrderPage = ({ route }) => {
   const [defaultOrder, setDefaultOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const navigation = useNavigation();
+  const [editable, setEditable] = useState(false); // For editing mode
+  const [updatedQuantities, setUpdatedQuantities] = useState({}); // Track updated quantities
 
   const isPastDate = moment(selectedDate).isBefore(moment(), "day");
 
@@ -75,7 +77,7 @@ const PlaceOrderPage = ({ route }) => {
 
       const data = await response.json();
 
-      setOrderDetails(data)
+      setOrderDetails(data);
 
       // if (data.status) {
       //   setOrderDetails(data);
@@ -160,9 +162,37 @@ const PlaceOrderPage = ({ route }) => {
     setShowModal(false);
   };
 
+  // Toggle between edit and non-edit mode
   const handleEditOrder = () => {
-    // navigation.navigate("EditOrderPage", { order: defaultOrder });
+    setEditable(true);
     setShowModal(false);
+    const initialQuantities = defaultOrder?.products.reduce((acc, product) => {
+      acc[product.id] = product.quantity; // Initialize the quantities
+      return acc;
+    }, {});
+    setUpdatedQuantities(initialQuantities);
+  };
+
+  const handleQuantityChange = (text, index) => {
+    const updatedProducts = [...defaultOrder.products];
+    const parsedQuantity = parseInt(text, 10);
+
+    // Ensure that the value is a valid number, otherwise default to 0
+    updatedProducts[index].quantity = isNaN(parsedQuantity) ? 0 : parsedQuantity;
+    
+    setDefaultOrder({ ...defaultOrder, products: updatedProducts });
+  };
+
+  const handleSaveChanges = () => {
+    const updatedOrder = {
+      ...defaultOrder,
+      products: defaultOrder.products.map((product) => ({
+        ...product,
+        quantity: updatedQuantities[product.id] || product.quantity,
+      })),
+    };
+    setDefaultOrder(updatedOrder); // Update order with new quantities
+    setEditable(false);
   };
 
   if (loading) {
@@ -178,12 +208,10 @@ const PlaceOrderPage = ({ route }) => {
   }
 
   console.log(orderDetails, selectedDate, shift);
-  
 
   return (
     <View style={styles.container}>
       <BackButton navigation={navigation} />
-
       {isPastDate ? (
         orderDetails ? (
           <>
@@ -195,38 +223,47 @@ const PlaceOrderPage = ({ route }) => {
             <OrderProductsList products={orderDetails.products} />
           </>
         ) : (
-          // <ErrorMessage message="There are no orders for this date." />
-          <></>
+          <ErrorMessage message="There are no orders for this date." />
         )
       ) : (
         <View>
-          {orderDetails ? (
-            <OrderDetails
-              orderDetails={orderDetails}
-              selectedDate={selectedDate}
-              shift={shift}
-            />
-          ) : defaultOrder ? (
+          {defaultOrder ? (
             <>
               <OrderDetails
                 orderDetails={defaultOrder}
                 selectedDate={selectedDate}
                 shift={shift}
               />
-              <OrderProductsList products={defaultOrder.products} />
-              {/* Modal will show automatically if the default order exists */}
-              <OrderModal
-                isVisible={showModal}
-                onClose={() => setShowModal(false)}
-                onSelect={handleSelectOrder}
-                onEdit={handleEditOrder}
+              <OrderProductsList
+                products={
+                  orderDetails ? orderDetails.products : defaultOrder.products
+                }
+                isEditable={!isPastDate}
+                onQuantityChange={handleQuantityChange}
               />
+              {editable ? (
+                <SubmitButton
+                  handleSubmit={handleSaveChanges}
+                  label="Save Changes"
+                />
+              ) : (
+                <>
+                  <OrderModal
+                    isVisible={showModal}
+                    onClose={() => setShowModal(false)}
+                    onSelect={handleSelectOrder}
+                    onEdit={handleEditOrder}
+                  />
+                  <SubmitButton
+                    handleSubmit={handleSubmit}
+                    label="Submit Order"
+                  />
+                </>
+              )}
             </>
           ) : (
             <ErrorMessage message="No default order available." />
           )}
-
-          {!isPastDate && <SubmitButton handleSubmit={handleSubmit} />}
         </View>
       )}
     </View>

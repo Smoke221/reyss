@@ -18,7 +18,7 @@ const formatDate = (epochTime) => {
 };
 
 const HomePage = () => {
-  const amountPending = "₹ 10,000";
+  const amountPending = "₹ 7000";
   const [isLoading, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [lastOrderDetails, setLastOrderDetails] = useState(null);
