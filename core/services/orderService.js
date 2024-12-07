@@ -70,6 +70,7 @@ const checkOrderService = async (customerId, orderType, products) => {
     let totalAmount = 0;
     const invalidProducts = [];
     let dbProducts = await getProducts();
+
     for (const product of products) {
       const { product_id, quantity } = product;
       const productData = dbProducts.find((p) => p.id === product_id);
@@ -78,12 +79,14 @@ const checkOrderService = async (customerId, orderType, products) => {
         invalidProducts.push(product_id);
         continue;
       }
-      if (!Number.isInteger(quantity) || quantity <= 0) {
+
+      const parsedQuantity = parseInt(quantity, 10);
+      if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
         invalidProducts.push(product_id);
         continue;
       }
 
-      totalAmount += productData.price * quantity;
+      totalAmount += productData.price * parsedQuantity;
     }
 
     if (invalidProducts.length > 0) {
@@ -107,24 +110,35 @@ const checkOrderService = async (customerId, orderType, products) => {
 const orderHistoryService = async (customerId) => {
   try {
     const orders = await getOrdersByCustomerId(customerId);
+
+    const getStartOfDayTimestamp = (date) => {
+      const dateObj = new Date(date * 1000);
+      dateObj.setUTCHours(0, 0, 0, 0);
+      return Math.floor(dateObj.getTime() / 1000);
+    };
+
     const groupOrdersByDateAndType = (orders) => {
       const result = {};
 
       orders.forEach((order) => {
-        const orderDate = order.placedOn;
+        const orderDateTimestamp = getStartOfDayTimestamp(order.placedOn);
         const orderType = order.orderType;
 
-        const totalQuantity = order.quantity;
-
-        if (!result[orderDate]) {
-          result[orderDate] = {};
+        if (!result[orderDateTimestamp]) {
+          result[orderDateTimestamp] = {};
         }
-        result[orderDate][orderType] = {
-          quantity: totalQuantity,
-          route: order.route,
-          totalAmount: order.totalAmount,
-          orderId: order.orderId,
-        };
+
+        if (!result[orderDateTimestamp][orderType]) {
+          result[orderDateTimestamp][orderType] = {
+            quantity: 0,
+            totalAmount: 0,
+            route: order.route,
+            orderId: order.orderId,
+          };
+        }
+
+        result[orderDateTimestamp][orderType].quantity += order.quantity;
+        result[orderDateTimestamp][orderType].totalAmount += order.totalAmount;
       });
 
       return result;
