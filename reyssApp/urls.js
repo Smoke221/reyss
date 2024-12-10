@@ -1,6 +1,6 @@
 // config.js
 const environments = {
-  home: "192.168.0.104",
+  home: "192.168.0.108",
   work: "10.0.18.105"
 };
 
