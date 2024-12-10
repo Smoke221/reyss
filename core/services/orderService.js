@@ -7,6 +7,7 @@ const {
   getProducts,
   createOrder,
   addOrderProducts,
+  createTransactionForCOD,
 } = require("./dbUtility");
 const { executeQuery } = require("../dbUtils/db");
 
@@ -31,6 +32,8 @@ const placeOrderService = async (
 
     // Step 2: Add products to the order
     await addOrderProducts(orderId, products);
+
+    await createTransactionForCOD(orderId, totalAmount);
 
     // Step 3: Return the result (Order placed successfully)
     return {

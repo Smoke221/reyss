@@ -28,7 +28,7 @@ const getUserById = async (customerId) => {
     const [user] = await executeQuery(userQuery, [customerId]);
 
     const latestOrderQuery = `
-      SELECT id, customer_id, total_amount, order_type, is_default_order, placed_on, is_defect_order, amount_paid FROM orders WHERE customer_id = ? ORDER BY placed_on DESC LIMIT 1
+      SELECT id, customer_id, total_amount, order_type, placed_on FROM orders WHERE customer_id = ? ORDER BY placed_on DESC LIMIT 1
     `;
     const [latestOrder] = await executeQuery(latestOrderQuery, [customerId]);
 
@@ -198,6 +198,80 @@ const addOrderProducts = async (orderId, products) => {
     throw new Error("Failed to add products to the order.");
   }
 };
+const getDailyTransactions = async (userId, month, year) => {
+  try {
+    const getDailyTransactionsQuery = `
+  SELECT 
+      DATE(FROM_UNIXTIME(o.placed_on)) AS order_date, 
+      SUM(o.total_amount) AS total_order_amount, 
+      SUM(IFNULL(t.amount, 0)) AS total_amount_paid
+  FROM 
+      orders o
+  LEFT JOIN 
+      transactions t ON o.id = t.order_id
+  WHERE 
+      o.customer_id = ? AND
+      MONTH(FROM_UNIXTIME(o.placed_on)) = ? AND
+      YEAR(FROM_UNIXTIME(o.placed_on)) = ?
+  GROUP BY 
+      DATE(FROM_UNIXTIME(o.placed_on))
+  ORDER BY 
+      order_date;
+`;
+    const result = await executeQuery(getDailyTransactionsQuery, [
+      userId,
+      month,
+      year,
+    ]);
+    return result;
+  } catch (error) {
+    console.error("Error executing daily transactions query:", error.message);
+    throw new Error("Unable to fetch daily transactions.");
+  }
+};
+
+const getMonthlyTotals = async (userId, month, year) => {
+  try {
+    const getMonthlyTotalsQuery = `
+  SELECT 
+      SUM(o.total_amount) AS total_order_amount, 
+      SUM(IFNULL(t.amount, 0)) AS total_amount_paid
+  FROM 
+      orders o
+  LEFT JOIN 
+      transactions t ON o.id = t.order_id
+  WHERE 
+      o.customer_id = ? AND
+      MONTH(FROM_UNIXTIME(o.placed_on)) = ? AND
+      YEAR(FROM_UNIXTIME(o.placed_on)) = ?;
+`;
+    const result = await executeQuery(getMonthlyTotalsQuery, [
+      userId,
+      month,
+      year,
+    ]);
+    return result[0] || { total_order_amount: 0, total_amount_paid: 0 };
+  } catch (error) {
+    console.error("Error executing monthly totals query:", error.message);
+    throw new Error("Unable to fetch monthly totals.");
+  }
+};
+
+const createTransactionForCOD = async (orderId, amount) => {
+  try {
+    const query = `
+      INSERT INTO transactions (order_id, amount, payment_gateway, payment_status, payment_date)
+      VALUES (?, ?, 'COD', 'pending', NOW())
+    `;
+
+    await executeQuery(query, [orderId, amount]);
+
+    console.log(`Transaction created for COD order with orderId: ${orderId}`);
+  } catch (error) {
+    console.error("Error creating transaction for COD order:", error.message);
+    throw new Error("Error creating COD transaction.");
+  }
+};
 
 module.exports = {
   isUserExists,
@@ -210,4 +284,7 @@ module.exports = {
   lastPMOrder,
   createOrder,
   addOrderProducts,
+  createTransactionForCOD,
+  getDailyTransactions,
+  getMonthlyTotals,
 };

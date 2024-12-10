@@ -1,6 +1,4 @@
-const { default: mongoose } = require("mongoose");
 const {
-  placeOrder,
   orderHistoryService,
   checkOrderService,
   placeOrderService,
