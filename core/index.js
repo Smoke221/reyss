@@ -3,6 +3,7 @@ const cors = require("cors");
 const userRouter = require("./routes/user");
 const orderRouter = require("./routes/order");
 const transactionsRouter = require("./routes/transaction");
+const adminRouter = require("./routes/admin");
 const app = express();
 app.use(express.json());
 
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
 app.use("/", userRouter);
 app.use("/", orderRouter);
 app.use("/", transactionsRouter);
+app.use("/", adminRouter)
 
 app.get("/s", (req, res) => {
   res.send("Secured page.");

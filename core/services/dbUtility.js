@@ -273,6 +273,90 @@ const createTransactionForCOD = async (orderId, amount) => {
   }
 };
 
+const addUser = async (userDetails) => {
+  try {
+    const insertUserQuery = `
+      INSERT INTO users (customer_id, username, name, password, created_at, updated_at)
+      VALUES (?, ?, ?, ?, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())
+    `;
+
+    await executeQuery(insertUserQuery, [
+      userDetails.customer_id,
+      userDetails.username,
+      userDetails.name,
+      userDetails.password,
+    ]);
+  } catch (error) {
+    console.error("Error addUser dbUtility", error.message);
+    throw new Error("Error in addUser.");
+  }
+};
+
+const getAllOrders = async (params) => {
+  try {
+    const {
+      organizationId,
+      search = "",
+      orderBy = "ASC", // Default order
+      status = "ACTIVE", // Default status
+      limit = 10,
+      page = 1,
+      category, // Category filter
+      name, // Product name filter
+    } = params;
+
+    const offset = (page - 1) * limit;
+
+    // Base query for orders, joining with users for customer details and order_products for product details
+    let query = `SELECT o.*, u.name AS customer_name, op.category, op.name AS product_name
+                 FROM orders o
+                 JOIN users u ON o.customer_id = u.customer_id
+                 JOIN order_products op ON o.id = op.order_id
+                 WHERE 1=1 `;
+
+    const values = [];
+
+    // Dynamically add search condition if `search` is provided
+    if (search) {
+      query += ` AND u.name LIKE ?`;
+      values.push(`%${search}%`);
+    }
+
+    // Add category filter if provided
+    if (category) {
+      query += ` AND op.category = ?`;
+      values.push(category);
+    }
+
+    // Add product name filter if provided
+    if (name) {
+      query += ` AND op.name LIKE ?`;
+      values.push(`%${name}%`);
+    }
+
+    // Dynamically add sorting
+    query += ` ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
+    values.push(limit, offset);
+
+    // Execute the query
+    const orders = await executeQuery(query, values);
+
+    // Count query for total orders (without any filters)
+    const countQuery = `SELECT COUNT(*) AS count
+                        FROM orders o
+                        JOIN order_products op ON o.id = op.order_id
+                        JOIN users u ON o.customer_id = u.customer_id
+                        WHERE 1=1`;
+    const [countResult] = await executeQuery(countQuery);
+
+    // Return both the filtered orders and the total count
+    return { orders, count: countResult.count };
+  } catch (error) {
+    console.error("Error in getAllOrders dbUtility:", error);
+    throw new Error("Failed to get all orders.");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -287,4 +371,6 @@ module.exports = {
   createTransactionForCOD,
   getDailyTransactions,
   getMonthlyTotals,
+  addUser,
+  getAllOrders,
 };
