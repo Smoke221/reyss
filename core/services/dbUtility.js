@@ -1,4 +1,5 @@
 const { executeQuery } = require("../dbUtils/db");
+const bcrypt = require('bcryptjs');
 
 const findUserByUserName = async (userName) => {
   try {
@@ -412,6 +413,37 @@ const addProduct = async (productData) => {
   }
 };
 
+const changePassword = async (id, oldPassword, newPassword) => {
+  try {
+    const query = `SELECT password FROM users WHERE customer_id = ?`;
+    const [user] = await executeQuery(query, [id]);
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return null;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const updateQuery = `UPDATE users SET password = ?, updated_at = ? WHERE customer_id = ?`;
+    await executeQuery(updateQuery, [
+      hashedPassword,
+      Math.floor(Date.now() / 1000),
+      id,
+    ]);
+
+    return true;
+  } catch (error) {
+    console.error("Error in changePassword dbUtility:", error);
+    throw new Error("Failed to change password.");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -431,4 +463,5 @@ module.exports = {
   setAmOrder,
   getAllUsers,
   addProduct,
+  changePassword,
 };

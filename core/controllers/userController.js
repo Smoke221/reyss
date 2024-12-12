@@ -21,11 +21,7 @@ const loginController = async (req, res) => {
     }
 
     console.log("Login successful for username:", username);
-    res.status(200).json({
-      status: loginResponse.response.status,
-      message: loginResponse.response.message,
-      token: loginResponse.response.data.token,
-    });
+    res.status(loginResponse.statusCode).send(loginResponse.response);
   } catch (err) {
     console.error("Error during login:", err.message);
     return res.status(500).json({
@@ -73,4 +69,38 @@ const userDetailsController = async (req, res) => {
   }
 };
 
-module.exports = { loginController, userDetailsController };
+const changePasswordController = async (req, res) => {
+  try {
+    const customer_id = req.userID;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        status: false,
+        message: "Old password and new password are required.",
+      });
+    }
+
+    const changePasswordResponse = await userService.changePasswordService(
+      customer_id,
+      oldPassword,
+      newPassword
+    );
+
+    return res
+      .status(changePasswordResponse.statusCode)
+      .json(changePasswordResponse.response);
+  } catch (err) {
+    console.error("Error in changePasswordController:", err.message);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to change password.",
+    });
+  }
+};
+
+module.exports = {
+  loginController,
+  userDetailsController,
+  changePasswordController,
+};

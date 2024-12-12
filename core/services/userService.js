@@ -1,20 +1,38 @@
 const jwt = require("jsonwebtoken");
-const { findUserByUserName, getUserById } = require("./dbUtility");
+const bcrypt = require("bcryptjs");
+const {
+  findUserByUserName,
+  getUserById,
+  changePassword,
+} = require("./dbUtility");
 const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 
 const loginUser = async (username, password) => {
   try {
     const user = await findUserByUserName(username);
 
-    if (user.password !== password) {
+    if (!user || !user.username) {
       return {
         statusCode: 400,
         response: {
           status: false,
-          message: "Incorrect password.",
+          message: "User not found.",
         },
       };
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: "Incorrect credentials.",
+        },
+      };
+    }
+
     const token = jwt.sign(
       { id: user.customer_id, username: user.username, role: user.role },
       process.env.JWT_SECRET,
@@ -26,10 +44,11 @@ const loginUser = async (username, password) => {
       response: {
         status: true,
         message: "Login successful",
-        data: { token, user: user[0] },
+        token,
       },
     };
   } catch (err) {
+    console.error("Error in loginUser:", err.message);
     throw new Error(err.message || "Internal Server Error");
   }
 };
@@ -52,4 +71,35 @@ const getUserDetailsByCustomerId = async (customerId) => {
   }
 };
 
-module.exports = { loginUser, getUserDetailsByCustomerId };
+const changePasswordService = async (id, oldPassword, newPassword) => {
+  try {
+    // Fetch user details and verify old password
+    const user = await changePassword(id, oldPassword, newPassword);
+
+    if (!user) {
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: "Old password is incorrect.",
+        },
+      };
+    }
+
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        message: "Password changed successfully.",
+      },
+    };
+  } catch (err) {
+    throw new Error(err.message || "Internal Server Error");
+  }
+};
+
+module.exports = {
+  loginUser,
+  getUserDetailsByCustomerId,
+  changePasswordService,
+};
