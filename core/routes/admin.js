@@ -4,6 +4,7 @@ const {
   getAllOrdersController,
   setAmOrderController,
   getAllUsersController,
+  addProductController,
 } = require("../controllers/adminController");
 const { authenticate, authorizeAdmin } = require("../middleware/authenticate");
 
@@ -20,6 +21,18 @@ adminRouter.post(
   setAmOrderController
 );
 
-adminRouter.get("/allUsers", authenticate, authorizeAdmin, getAllUsersController)
+adminRouter.get(
+  "/allUsers",
+  authenticate,
+  authorizeAdmin,
+  getAllUsersController
+);
+
+adminRouter.post(
+  "/newItem",
+  authenticate,
+  authorizeAdmin,
+  addProductController
+);
 
 module.exports = adminRouter;

@@ -387,6 +387,31 @@ const getAllUsers = async (searchQuery) => {
   }
 };
 
+const addProduct = async (productData) => {
+  try {
+    const query = `
+      INSERT INTO products (name, brand, category, price, discountPrice, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      productData.name,
+      productData.brand,
+      productData.category,
+      productData.price,
+      productData.discountPrice,
+      productData.created_at,
+      productData.updated_at,
+    ];
+
+    const response = await executeQuery(query, values);
+    return response;
+  } catch (error) {
+    console.error("Error in addProduct dbUtility:", error);
+    throw new Error("Failed to add product.");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -405,4 +430,5 @@ module.exports = {
   getAllOrders,
   setAmOrder,
   getAllUsers,
+  addProduct,
 };

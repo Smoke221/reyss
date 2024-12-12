@@ -4,6 +4,7 @@ const {
   getAllOrders,
   setAmOrder,
   getAllUsers,
+  addProduct,
 } = require("./dbUtility");
 
 exports.addUserService = async (userDetails) => {
@@ -78,5 +79,28 @@ exports.getAllUsersService = async (searchQuery) => {
   } catch (error) {
     console.error("Error in getAllUsersService:", error);
     throw new Error("Failed to get all users.");
+  }
+};
+
+exports.addProductService = async (productData) => {
+  try {
+    // Check if product already exists
+    // const existingProduct = await getProductByName(productData.name);
+    // if (existingProduct) {
+    //   throw new Error("Product already exists.");
+    // }
+
+    const addResponse = await addProduct(productData);
+    return {
+      statusCode: 201,
+      response: {
+        status: true,
+        message: "Product added successfully",
+        productId: addResponse.insertId,
+      },
+    };
+  } catch (error) {
+    console.error("Error in addProductService:", error);
+    throw new Error("Failed to add product.");
   }
 };

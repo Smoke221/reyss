@@ -84,3 +84,36 @@ exports.getAllUsersController = async (req, res) => {
     });
   }
 };
+
+exports.addProductController = async (req, res) => {
+  try {
+    const { name, brand, category, price, discountPrice, } = req.body;
+
+    if (!name || !category || !price || !brand) {
+      return res.status(400).json({
+        status: "error",
+        message: "Required fields: name, category, and price.",
+      });
+    }
+
+    const productData = {
+      name,
+      brand,
+      category,
+      price,
+      discountPrice: discountPrice || 0,
+      created_at: Math.floor(Date.now() / 1000),
+      updated_at: Math.floor(Date.now() / 1000),
+    };
+
+    const addResponse = await adminService.addProductService(productData);
+
+    res.status(addResponse.statusCode).send(addResponse.response);
+  } catch (error) {
+    console.error("Error in addProductController:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to add product.",
+    });
+  }
+};
