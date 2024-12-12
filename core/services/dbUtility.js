@@ -1,5 +1,5 @@
 const { executeQuery } = require("../dbUtils/db");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
 const findUserByUserName = async (userName) => {
   try {
@@ -444,6 +444,23 @@ const changePassword = async (id, oldPassword, newPassword) => {
   }
 };
 
+const updateUser = async (customer_id, userDetails) => {
+  try {
+    const setPlaceholders = Object.keys(userDetails)
+      .map((key) => `${key} = ?`)
+      .join(", ");
+
+    const updateQuery = `UPDATE users SET ${setPlaceholders} WHERE customer_id = ?`;
+
+    const values = [...Object.values(userDetails), customer_id];
+    const response = await executeQuery(updateQuery, values);
+    return response;
+  } catch (error) {
+    console.error("Error in updateUser dbUtility:", error);
+    throw new Error("Failed to update user.");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -464,4 +481,5 @@ module.exports = {
   getAllUsers,
   addProduct,
   changePassword,
+  updateUser,
 };

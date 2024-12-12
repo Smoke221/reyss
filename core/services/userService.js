@@ -4,6 +4,7 @@ const {
   findUserByUserName,
   getUserById,
   changePassword,
+  updateUser,
 } = require("./dbUtility");
 const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 
@@ -38,6 +39,10 @@ const loginUser = async (username, password) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+
+    await updateUser(user.customer_id, {
+      last_login: Math.floor(Date.now() / 1000),
+    });
 
     return {
       statusCode: 200,
