@@ -79,13 +79,23 @@ const getOrdersByCustomerId = async (customerId) => {
   }
 };
 
-const getProducts = async () => {
+const getProducts = async (filters) => {
   try {
-    const query = "SELECT * FROM products";
-    const products = await executeQuery(query);
+    let query = "SELECT * FROM products";
+    const filterConditions = Object.entries(filters)
+      .map(([key, value]) => `${key} = ?`)
+      .join(" AND ");
+
+    const values = Object.values(filters);
+
+    if (filterConditions) {
+      query += ` WHERE ${filterConditions}`;
+    }
+
+    const products = await executeQuery(query, values);
     return products;
   } catch (error) {
-    console.error("Error in dbutility --> getProducts.");
+    console.error("Error in dbutility --> getProducts:", error);
     throw error;
   }
 };

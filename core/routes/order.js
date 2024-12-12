@@ -15,9 +15,4 @@ orderRouter.post("/place", authenticate, placeOrderController);
 orderRouter.get("/history", authenticate, orderHistoryController);
 orderRouter.get("/order", authenticate, getOrderController);
 
-orderRouter.get("/products", async (req, res) => {
-  const products = await getProducts();
-  res.status(200).json(products);
-});
-
 module.exports = orderRouter;
