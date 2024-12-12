@@ -1,4 +1,10 @@
-const { addUser, isUserExists, getAllOrders } = require("./dbUtility");
+const {
+  addUser,
+  isUserExists,
+  getAllOrders,
+  setAmOrder,
+  getAllUsers,
+} = require("./dbUtility");
 
 exports.addUserService = async (userDetails) => {
   try {
@@ -39,5 +45,38 @@ exports.getAllOrdersService = async (params) => {
   } catch (error) {
     console.error("Error in getAllOrdersService:", error);
     throw new Error("Failed to get all orders.");
+  }
+};
+
+exports.setAmOrderService = async (products) => {
+  try {
+    const addResponse = await setAmOrder(products);
+
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        data: addResponse,
+      },
+    };
+  } catch (error) {
+    console.error("Error in setAmOrderService:", error);
+    throw new Error("Failed to set AM order.");
+  }
+};
+
+exports.getAllUsersService = async (searchQuery) => {
+  try {
+    const getResponse = await getAllUsers(searchQuery);
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        data: getResponse,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getAllUsersService:", error);
+    throw new Error("Failed to get all users.");
   }
 };

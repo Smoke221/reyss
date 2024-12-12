@@ -9,6 +9,7 @@ const authenticate = (req, res, next) => {
         res.status(401).json({ msg: "Invalid token, please login again" });
       } else {
         req.userID = decoded.id;
+        req.userRole = decoded.role;
         next();
       }
     });
@@ -16,4 +17,15 @@ const authenticate = (req, res, next) => {
     res.status(401).json({ msg: "Authorization token required" });
   }
 };
-module.exports = { authenticate };
+
+const authorizeAdmin = (req, res, next) => {
+  const { userRole } = req;
+
+  if (userRole === "admin" || userRole === "super_admin") {
+    next();
+  } else {
+    return res.status(403).json({ msg: "Access denied: Admins only" });
+  }
+};
+
+module.exports = { authenticate, authorizeAdmin };

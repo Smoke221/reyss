@@ -357,6 +357,36 @@ const getAllOrders = async (params) => {
   }
 };
 
+const setAmOrder = async (products) => {
+  try {
+    const query = `INSERT INTO am_order_products (product_id) VALUES ?`;
+
+    const values = products.map((id) => [id]);
+    const response = await executeQuery(query, [values]);
+    return response;
+  } catch (error) {
+    console.error("Error in setAmOrder dbUtility:", error);
+    throw new Error("Failed to set AM orders.");
+  }
+};
+
+const getAllUsers = async (searchQuery) => {
+  try {
+    let query = `SELECT * FROM users`;
+
+    if (searchQuery) {
+      query += ` WHERE name LIKE ?`;
+    }
+
+    const values = searchQuery ? [`%${searchQuery}%`] : [];
+    const response = await executeQuery(query, values);
+    return response;
+  } catch (error) {
+    console.error("Error in getAllUsers dbUtility:", error);
+    throw new Error("Failed to get all users.");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -373,4 +403,6 @@ module.exports = {
   getMonthlyTotals,
   addUser,
   getAllOrders,
+  setAmOrder,
+  getAllUsers,
 };
