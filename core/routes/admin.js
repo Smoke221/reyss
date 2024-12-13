@@ -10,9 +10,14 @@ const { authenticate, authorizeAdmin } = require("../middleware/authenticate");
 
 const adminRouter = express.Router();
 
-adminRouter.post("/addUser", addUserController);
+adminRouter.post("/addUser", authenticate, authorizeAdmin, addUserController);
 
-adminRouter.get("/allOrders", getAllOrdersController);
+adminRouter.get(
+  "/allOrders",
+  authenticate,
+  authorizeAdmin,
+  getAllOrdersController
+);
 
 adminRouter.post(
   "/setAmOrder",

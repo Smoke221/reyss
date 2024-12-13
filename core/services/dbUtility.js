@@ -306,7 +306,6 @@ const addUser = async (userDetails) => {
 const getAllOrders = async (params) => {
   try {
     const {
-      organizationId,
       search = "",
       orderBy = "ASC", // Default order
       status = "ACTIVE", // Default status
@@ -314,10 +313,11 @@ const getAllOrders = async (params) => {
       page = 1,
       category, // Category filter
       name, // Product name filter
+      date, // Date filter (specific date)
     } = params;
 
     const offset = (page - 1) * limit;
-
+    
     // Base query for orders, joining with users for customer details and order_products for product details
     let query = `SELECT o.*, u.name AS customer_name, op.category, op.name AS product_name
                  FROM orders o
@@ -345,6 +345,14 @@ const getAllOrders = async (params) => {
       values.push(`%${name}%`);
     }
 
+    // Add date filter if provided
+    if (date) {
+      const startDate = new Date(date).setHours(0, 0, 0, 0) / 1000; // Start of the day (epoch time)
+      const endDate = new Date(date).setHours(23, 59, 59, 999) / 1000; // End of the day (epoch time)
+      query += ` AND o.placed_on BETWEEN ? AND ?`;
+      values.push(startDate, endDate);
+    }
+
     // Dynamically add sorting
     query += ` ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
     values.push(limit, offset);
@@ -353,12 +361,15 @@ const getAllOrders = async (params) => {
     const orders = await executeQuery(query, values);
 
     // Count query for total orders (without any filters)
-    const countQuery = `SELECT COUNT(*) AS count
-                        FROM orders o
-                        JOIN order_products op ON o.id = op.order_id
-                        JOIN users u ON o.customer_id = u.customer_id
-                        WHERE 1=1`;
-    const [countResult] = await executeQuery(countQuery);
+    let countQuery = `SELECT COUNT(*) AS count
+                      FROM orders o
+                      JOIN order_products op ON o.id = op.order_id
+                      JOIN users u ON o.customer_id = u.customer_id
+                      WHERE 1=1`;
+
+    const countValues = [];
+
+    const [countResult] = await executeQuery(countQuery, countValues);
 
     // Return both the filtered orders and the total count
     return { orders, count: countResult.count };
