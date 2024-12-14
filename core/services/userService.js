@@ -36,7 +36,7 @@ const loginUser = async (username, password) => {
 
     const token = jwt.sign(
       { id: user.customer_id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
+      'smokeFirstMobileApp',
       { expiresIn: "1h" }
     );
 

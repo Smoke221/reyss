@@ -5,6 +5,7 @@ const {
   setAmOrderController,
   getAllUsersController,
   addProductController,
+  exportToExcelController,
 } = require("../controllers/adminController");
 const { authenticate, authorizeAdmin } = require("../middleware/authenticate");
 
@@ -39,5 +40,7 @@ adminRouter.post(
   authorizeAdmin,
   addProductController
 );
+
+adminRouter.post("/export", exportToExcelController);
 
 module.exports = adminRouter;

@@ -87,7 +87,7 @@ exports.getAllUsersController = async (req, res) => {
 
 exports.addProductController = async (req, res) => {
   try {
-    const { name, brand, category, price, discountPrice, } = req.body;
+    const { name, brand, category, price, discountPrice } = req.body;
 
     if (!name || !category || !price || !brand) {
       return res.status(400).json({
@@ -115,5 +115,44 @@ exports.addProductController = async (req, res) => {
       status: "error",
       message: "Failed to add product.",
     });
+  }
+};
+
+exports.exportToExcelController = async (req, res) => {
+  try {
+    const { data, fileName } = req.body;
+
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid data provided. Data must be a non-empty array.",
+      });
+    }
+
+    if (!fileName) {
+      return res.status(400).json({
+        status: false,
+        message: "Filename is required.",
+      });
+    }
+
+    const excelBuffer = await adminService.exportToExcelService(data);
+
+    // Set headers to download the file
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${fileName}.xlsx`
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.status(200).send(excelBuffer); // Send the Excel file as a buffer
+  } catch (error) {
+    console.error("Error in exportToExcelController:", error);
+    res
+      .status(500)
+      .json({ status: false, message: "Failed to export data to Excel." });
   }
 };
