@@ -46,7 +46,7 @@ const HomePage = () => {
   const userDetailsData1 = async () => {
     try {
       const token = await AsyncStorage.getItem("userAuthToken");
-      const response = await fetch(`http://${ipAddress}:8090/userDetails`, {
+      const response = await fetch(`http://16.171.111.246:8090/userDetails`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

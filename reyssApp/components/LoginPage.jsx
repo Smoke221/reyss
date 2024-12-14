@@ -23,7 +23,7 @@ const LoginPage = ({ navigation }) => {
     setIsLoading(true);
     try {
       console.log(ipAddress);
-      const response = await fetch(`http://${ipAddress}:8090/auth`, {
+      const response = await fetch(`http://16.171.111.246:8090/auth`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

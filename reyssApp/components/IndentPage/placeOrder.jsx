@@ -61,7 +61,7 @@ const PlaceOrderPage = ({ route }) => {
       }
 
       const response = await fetch(
-        `http://${ipAddress}:8090/order?orderId=${orderId}`,
+        `http://16.171.111.246:8090/order?orderId=${orderId}`,
         {
           method: "GET",
           headers: {
@@ -121,7 +121,7 @@ const PlaceOrderPage = ({ route }) => {
 
       const options = {
         method: "POST",
-        url: `http://${ipAddress}:8090/place`,
+        url: `http://16.171.111.246:8090/place`,
         data: {
           products: defaultOrder.products,
           orderType: shift,
