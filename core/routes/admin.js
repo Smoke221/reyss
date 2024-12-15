@@ -6,6 +6,7 @@ const {
   getAllUsersController,
   addProductController,
   exportToExcelController,
+  updateUserController,
 } = require("../controllers/adminController");
 const { authenticate, authorizeAdmin } = require("../middleware/authenticate");
 
@@ -40,6 +41,8 @@ adminRouter.post(
   authorizeAdmin,
   addProductController
 );
+
+adminRouter.post("/update", authenticate, authorizeAdmin, updateUserController)
 
 adminRouter.post("/export", exportToExcelController);
 

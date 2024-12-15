@@ -30,7 +30,7 @@ const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="IndentStack"
+        name="Indent"
         component={IndentStack}
         options={{
           tabBarIcon: ({ color, size }) => (

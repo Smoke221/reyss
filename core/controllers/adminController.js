@@ -1,5 +1,8 @@
 const adminService = require("../services/adminService");
 const bcrypt = require("bcryptjs");
+const XLSX = require("xlsx");
+const fs = require("fs");
+const path = require("path");
 
 exports.addUserController = async (req, res) => {
   try {
@@ -120,39 +123,60 @@ exports.addProductController = async (req, res) => {
 
 exports.exportToExcelController = async (req, res) => {
   try {
-    const { data, fileName } = req.body;
+    const orders = req.body;
+    console.log(`🪵 → req.body:`, orders);
 
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      return res.status(400).json({
-        status: false,
-        message: "Invalid data provided. Data must be a non-empty array.",
-      });
-    }
+    const formattedOrders = orders.map((order) => ({
+      "Order ID": order.id,
+      "Customer ID": order.customer_id,
+      "Customer Name": order.customer_name,
+      "Total Amount": order.total_amount,
+      "Order Type": order.order_type,
+      "Placed On": new Date(order.placed_on * 1000).toLocaleString(), // Convert epoch to readable date
+      "Product Category": order.category,
+      "Product Name": order.product_name,
+      Status: order.status,
+      "Created At": new Date(order.created_at * 1000).toLocaleString(),
+      "Updated At": new Date(order.updated_at * 1000).toLocaleString(),
+    }));
 
-    if (!fileName) {
-      return res.status(400).json({
-        status: false,
-        message: "Filename is required.",
-      });
-    }
+    // Create a new workbook and add the sheet with data
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(formattedOrders);
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
 
-    const excelBuffer = await adminService.exportToExcelService(data);
+    // Generate buffer for the workbook
+    const buffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
 
-    // Set headers to download the file
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=${fileName}.xlsx`
-    );
+    // Set proper response headers to force download
+    res.setHeader("Content-Disposition", "attachment; filename=orders.xlsx");
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
 
-    res.status(200).send(excelBuffer); // Send the Excel file as a buffer
+    // Send the buffer as a response
+    res.send(buffer);
   } catch (error) {
     console.error("Error in exportToExcelController:", error);
     res
       .status(500)
       .json({ status: false, message: "Failed to export data to Excel." });
+  }
+};
+
+exports.updateUserController = async (req, res) => {
+  try {
+    const { customer_id } = req.query;
+    if (!customer_id) {
+      return res
+        .status(401)
+        .json({ status: false, message: "Unauthorized access" });
+    }
+    const result = await adminService.updateUserService(customer_id, req.body);
+    res.status(result.statusCode).send(result.response);
+  } catch (error) {
+    console.error("Error in updateUser:", error);
+    res.status(500).json({ status: false, message: "Failed to update user." });
   }
 };

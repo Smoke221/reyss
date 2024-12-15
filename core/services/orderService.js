@@ -8,6 +8,7 @@ const {
   createOrder,
   addOrderProducts,
   createTransactionForCOD,
+  getProductss,
 } = require("./dbUtility");
 const { executeQuery } = require("../dbUtils/db");
 
@@ -72,7 +73,7 @@ const checkOrderService = async (customerId, orderType, products) => {
 
     let totalAmount = 0;
     const invalidProducts = [];
-    let dbProducts = await getProducts();
+    let dbProducts = await getProductss();
 
     for (const product of products) {
       const { product_id, quantity } = product;

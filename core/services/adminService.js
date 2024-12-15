@@ -5,9 +5,10 @@ const {
   setAmOrder,
   getAllUsers,
   addProduct,
+  updateUser,
 } = require("./dbUtility");
 const XLSX = require("xlsx");
-const ExcelJS = require('exceljs');
+const ExcelJS = require("exceljs");
 
 exports.addUserService = async (userDetails) => {
   try {
@@ -109,7 +110,7 @@ exports.addProductService = async (productData) => {
 
 exports.exportToExcelService = async (data) => {
   try {
-    console.log(`🪵 → data:`, data)
+    console.log(`🪵 → data:`, data);
     // Check if data is valid and not empty
     // if (!Array.isArray(data) || data.length === 0) {
     //   throw new Error("No data provided for Excel export.");
@@ -138,5 +139,21 @@ exports.exportToExcelService = async (data) => {
   } catch (error) {
     console.error("Error in exportToExcelService:", error.message);
     throw new Error("Failed to generate Excel file.");
+  }
+};
+
+exports.updateUserService = async (customer_id, data) => {
+  try {
+    const response = await updateUser(customer_id, data);
+    return {
+      statusCode: 201,
+      response: {
+        status: true,
+        message: "Update user.",
+      },
+    };
+  } catch (error) {
+    console.error("Error in updateUser:", error.message);
+    throw new Error("Failed to update users.");
   }
 };

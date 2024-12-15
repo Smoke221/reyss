@@ -79,6 +79,18 @@ const getOrdersByCustomerId = async (customerId) => {
   }
 };
 
+const getProductss = async () => {
+  try {
+    let query = "SELECT * FROM products";
+    const products = await executeQuery(query);
+    console.log(`🪵 → products:`, products)
+    return products;
+  } catch (error) {
+    console.error("Error in dbutility --> getProducts:", error);
+    throw error;
+  }
+};
+
 const getProducts = async (filters) => {
   try {
     let query = "SELECT * FROM products";
@@ -93,6 +105,7 @@ const getProducts = async (filters) => {
     }
 
     const products = await executeQuery(query, values);
+    console.log(`🪵 → products:`, products)
     return products;
   } catch (error) {
     console.error("Error in dbutility --> getProducts:", error);
@@ -171,7 +184,7 @@ const createOrder = async (
 // Function to insert products into the order_products table
 const addOrderProducts = async (orderId, products) => {
   try {
-    const availableProducts = await getProducts();
+    const availableProducts = await getProductss();
 
     const orderProductQueries = products.map((product) => {
       const { product_id, quantity } = product;
@@ -394,10 +407,10 @@ const setAmOrder = async (products) => {
 
 const getAllUsers = async (searchQuery) => {
   try {
-    let query = `SELECT * FROM users`;
+    let query = `SELECT * FROM users WHERE role = "user"`;
 
     if (searchQuery) {
-      query += ` WHERE name LIKE ?`;
+      query += `AND name LIKE ?`;
     }
 
     const values = searchQuery ? [`%${searchQuery}%`] : [];
@@ -503,4 +516,5 @@ module.exports = {
   addProduct,
   changePassword,
   updateUser,
+  getProductss
 };
