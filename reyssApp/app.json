@@ -19,10 +19,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/SL (1).png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.smoke221.reyssApp"
     },
     "web": {
       "favicon": "./assets/SL (1).png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "488d8920-83c8-4c1b-890b-f6347a90b252"
+      }
     }
   }
 }
