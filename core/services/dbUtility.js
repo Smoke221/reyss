@@ -277,14 +277,14 @@ const getMonthlyTotals = async (userId, month, year) => {
   }
 };
 
-const createTransactionForCOD = async (orderId, amount) => {
+const createTransactionForCOD = async (orderId, customer_id ,amount) => {
   try {
     const query = `
-      INSERT INTO transactions (order_id, amount, payment_gateway, payment_status, payment_date)
-      VALUES (?, ?, 'COD', 'pending', NOW())
+      INSERT INTO transactions (order_id, customer_id ,amount, payment_gateway, payment_status, payment_date)
+      VALUES (?, ?, ? ,'COD', 'pending', NOW())
     `;
 
-    await executeQuery(query, [orderId, amount]);
+    await executeQuery(query, [orderId, customer_id ,amount]);
 
     console.log(`Transaction created for COD order with orderId: ${orderId}`);
   } catch (error) {
