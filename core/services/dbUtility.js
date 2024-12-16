@@ -83,7 +83,7 @@ const getProductss = async () => {
   try {
     let query = "SELECT * FROM products";
     const products = await executeQuery(query);
-    console.log(`🪵 → products:`, products)
+    console.log(`🪵 → products:`, products);
     return products;
   } catch (error) {
     console.error("Error in dbutility --> getProducts:", error);
@@ -94,18 +94,14 @@ const getProductss = async () => {
 const getProducts = async (filters) => {
   try {
     let query = "SELECT * FROM products";
-    const filterConditions = Object.entries(filters)
-      .map(([key, value]) => `${key} = ?`)
-      .join(" AND ");
+    const values = [];
 
-    const values = Object.values(filters);
-
-    if (filterConditions) {
-      query += ` WHERE ${filterConditions}`;
+    if (filters.search) {
+      query += " WHERE name LIKE ?";
+      values.push(`%${filters.search}%`);
     }
 
     const products = await executeQuery(query, values);
-    console.log(`🪵 → products:`, products)
     return products;
   } catch (error) {
     console.error("Error in dbutility --> getProducts:", error);
@@ -330,7 +326,7 @@ const getAllOrders = async (params) => {
     } = params;
 
     const offset = (page - 1) * limit;
-    
+
     // Base query for orders, joining with users for customer details and order_products for product details
     let query = `SELECT o.*, u.name AS customer_name, op.category, op.name AS product_name
                  FROM orders o
@@ -516,5 +512,5 @@ module.exports = {
   addProduct,
   changePassword,
   updateUser,
-  getProductss
+  getProductss,
 };
