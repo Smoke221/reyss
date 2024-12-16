@@ -34,7 +34,7 @@ const TransactionsPage = () => {
 
       const options = {
         method: "GET",
-        url: `http://16.171.111.246:8090/trans`,
+        url: `http://${ipAddress}:8090/trans`,
         params: { month, year },
         headers: {
           Authorization: `Bearer ${userAuthToken}`,

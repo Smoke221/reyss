@@ -9,6 +9,8 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import LogOutButton from "../LogoutButton";
 import { useNavigation } from "@react-navigation/native";
+import PasswordChangeModal from "./PasswordChangeModal";
+import PasswordChangeButton from "../PasswordChangeButton";
 
 const ProfilePage = () => {
   const navigation = useNavigation();
@@ -77,6 +79,7 @@ const ProfilePage = () => {
           <MaterialIcons name="keyboard-arrow-down" size={24} color="#ffcc00" />
         </TouchableOpacity>
       </ScrollView>
+      <PasswordChangeButton />
       <LogOutButton navigation={navigation} />
 
       {/* Footer */}
@@ -109,7 +112,7 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     backgroundColor: "#fff",
-    paddingVertical: 15,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     marginBottom: 10,
     flexDirection: "row",

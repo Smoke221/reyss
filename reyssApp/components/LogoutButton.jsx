@@ -51,12 +51,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
     padding: 20,
   },
   logoutButton: {
     backgroundColor: "#ffcc00",
-    paddingVertical: 15,
+    paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 25,
   },

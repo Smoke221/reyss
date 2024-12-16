@@ -44,7 +44,7 @@ const IndentPage = () => {
         return;
       }
 
-      const response = await fetch(`http://16.171.111.246:8090/history`, {
+      const response = await fetch(`http://${ipAddress}:8090/history`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

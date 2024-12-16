@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Alert, StyleSheet } from "react-native";
+import { View, Alert, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ipAddress } from "../../urls";
+import axios from "axios";
+import Icon from "react-native-vector-icons/MaterialIcons"; // Assuming you're using Expo
 import LoadingIndicator from "../general/Loader";
 import OrderDetails from "./nestedPage/orderDetails";
 import OrderProductsList from "./nestedPage/orderProductsList";
@@ -11,7 +12,8 @@ import BackButton from "../general/backButton";
 import SubmitButton from "./nestedPage/submitButton";
 import ErrorMessage from "../general/errorMessage";
 import OrderModal from "../general/orderModal";
-import axios from "axios";
+import SearchProductModal from "./nestedPage/searchProductModal";
+import { ipAddress } from "../../urls";
 
 const PlaceOrderPage = ({ route }) => {
   const { order, selectedDate, shift } = route.params;
@@ -20,9 +22,10 @@ const PlaceOrderPage = ({ route }) => {
   const [error, setError] = useState(null);
   const [defaultOrder, setDefaultOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const navigation = useNavigation();
-  const [editable, setEditable] = useState(false); // For editing mode
-  const [updatedQuantities, setUpdatedQuantities] = useState({}); // Track updated quantities
+  const [editable, setEditable] = useState(false);
+  const [updatedQuantities, setUpdatedQuantities] = useState({});
 
   const isPastDate = moment(selectedDate).isBefore(moment(), "day");
 
@@ -53,7 +56,6 @@ const PlaceOrderPage = ({ route }) => {
   const fetchOrderDetails = async (orderId) => {
     try {
       const userAuthToken = await AsyncStorage.getItem("userAuthToken");
-
       if (!userAuthToken) {
         setError("Authorization token is missing");
         setLoading(false);
@@ -61,7 +63,7 @@ const PlaceOrderPage = ({ route }) => {
       }
 
       const response = await fetch(
-        `http://16.171.111.246:8090/order?orderId=${orderId}`,
+        `http://${ipAddress}:8090/order?orderId=${orderId}`,
         {
           method: "GET",
           headers: {
@@ -76,14 +78,7 @@ const PlaceOrderPage = ({ route }) => {
       }
 
       const data = await response.json();
-
       setOrderDetails(data);
-
-      // if (data.status) {
-      //   setOrderDetails(data);
-      // } else {
-      //   setError("Order details not found");
-      // }
     } catch (err) {
       setError(err.message || "Error fetching order details");
     } finally {
@@ -111,6 +106,102 @@ const PlaceOrderPage = ({ route }) => {
     }, 3000);
   };
 
+  const handleAddProduct = async (product) => {
+    try {
+      // Check if the product already exists in the list
+      const isDuplicate = defaultOrder.products.some(
+        (existingProduct) => existingProduct.product_id === product.product_id
+      );
+
+      if (isDuplicate) {
+        Alert.alert(
+          "Product Already Exists",
+          "This product is already in your order."
+        );
+        return;
+      }
+
+      // Add product to the default order with quantity 1
+      const updatedProducts = [
+        ...(defaultOrder?.products || []),
+        { ...product, quantity: 1 },
+      ];
+
+      const updatedOrder = {
+        ...defaultOrder,
+        products: updatedProducts,
+      };
+
+      // Update state
+      setDefaultOrder(updatedOrder);
+
+      // Save to AsyncStorage
+      await AsyncStorage.setItem("modifiedOrder", JSON.stringify(updatedOrder));
+
+      // Close search modal
+      setShowSearchModal(false);
+    } catch (error) {
+      console.error("Error adding product:", error);
+      Alert.alert("Error", "Could not add product to the order");
+    }
+  };
+
+  const handleQuantityChange = async (text, index) => {
+    const updatedProducts = [...defaultOrder.products];
+    const parsedQuantity = parseInt(text, 10);
+
+    updatedProducts[index].quantity = isNaN(parsedQuantity)
+      ? 0
+      : parsedQuantity;
+
+    const updatedOrder = { ...defaultOrder, products: updatedProducts };
+
+    // Update state
+    setDefaultOrder(updatedOrder);
+
+    // Save to AsyncStorage
+    await AsyncStorage.setItem("modifiedOrder", JSON.stringify(updatedOrder));
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      const updatedOrder = {
+        ...defaultOrder,
+        products: defaultOrder.products.map((product) => ({
+          ...product,
+          quantity: updatedQuantities[product.id] || product.quantity,
+        })),
+      };
+
+      // Update state
+      setDefaultOrder(updatedOrder);
+
+      // Save to AsyncStorage
+      await AsyncStorage.setItem("modifiedOrder", JSON.stringify(updatedOrder));
+
+      // Exit edit mode
+      setEditable(false);
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      Alert.alert("Error", "Could not save changes");
+    }
+  };
+
+  const handleSelectOrder = () => {
+    setEditable(false);
+    setShowModal(false);
+  };
+
+  const handleEditOrder = () => {
+    setEditable(true);
+    setShowModal(false);
+    const initialQuantities = defaultOrder?.products.reduce((acc, product) => {
+      acc[product.id] = product.quantity;
+      return acc;
+    }, {});
+    setUpdatedQuantities(initialQuantities);
+  };
+
   const handleSubmit = async () => {
     try {
       const userAuthToken = await AsyncStorage.getItem("userAuthToken");
@@ -121,7 +212,7 @@ const PlaceOrderPage = ({ route }) => {
 
       const options = {
         method: "POST",
-        url: `http://16.171.111.246:8090/place`,
+        url: `http://${ipAddress}:8090/place`,
         data: {
           products: defaultOrder.products,
           orderType: shift,
@@ -134,13 +225,15 @@ const PlaceOrderPage = ({ route }) => {
 
       const response = await axios(options);
       if (response.status === 200) {
-        console.log("Order submitted successfully:", response.data);
+        // Clear the modified order after successful submission
+        await AsyncStorage.removeItem("modifiedOrder");
+
         Alert.alert("Success", "Order has been submitted successfully.");
-        // navigation.navigate("OrderHistoryPage");
       } else {
         throw new Error("Unexpected response status.");
       }
     } catch (error) {
+      console.error("Submit error:", error);
       if (error.response) {
         console.error("Server error:", error.response.data);
         Alert.alert(
@@ -157,44 +250,6 @@ const PlaceOrderPage = ({ route }) => {
     }
   };
 
-  const handleSelectOrder = () => {
-    // setOrderDetails(defaultOrder);
-    setShowModal(false);
-  };
-
-  // Toggle between edit and non-edit mode
-  const handleEditOrder = () => {
-    setEditable(true);
-    setShowModal(false);
-    const initialQuantities = defaultOrder?.products.reduce((acc, product) => {
-      acc[product.id] = product.quantity; // Initialize the quantities
-      return acc;
-    }, {});
-    setUpdatedQuantities(initialQuantities);
-  };
-
-  const handleQuantityChange = (text, index) => {
-    const updatedProducts = [...defaultOrder.products];
-    const parsedQuantity = parseInt(text, 10);
-
-    // Ensure that the value is a valid number, otherwise default to 0
-    updatedProducts[index].quantity = isNaN(parsedQuantity) ? 0 : parsedQuantity;
-    
-    setDefaultOrder({ ...defaultOrder, products: updatedProducts });
-  };
-
-  const handleSaveChanges = () => {
-    const updatedOrder = {
-      ...defaultOrder,
-      products: defaultOrder.products.map((product) => ({
-        ...product,
-        quantity: updatedQuantities[product.id] || product.quantity,
-      })),
-    };
-    setDefaultOrder(updatedOrder); // Update order with new quantities
-    setEditable(false);
-  };
-
   if (loading) {
     return <LoadingIndicator />;
   }
@@ -207,45 +262,51 @@ const PlaceOrderPage = ({ route }) => {
     );
   }
 
-  console.log(orderDetails, selectedDate, shift);
-
   return (
     <View style={styles.container}>
-      <BackButton navigation={navigation} />
-      {isPastDate ? (
-        orderDetails ? (
-          <>
-            <OrderDetails
-              orderDetails={orderDetails}
-              selectedDate={selectedDate}
-              shift={shift}
-            />
-            <OrderProductsList products={orderDetails.products} />
-          </>
-        ) : (
-          <ErrorMessage message="There are no orders for this date." />
-        )
-      ) : (
-        <View>
-          {defaultOrder ? (
+      <View style={styles.headerContainer}>
+        <BackButton navigation={navigation} />
+        {editable && (
+          <TouchableOpacity
+            style={styles.searchButton}
+            onPress={() => setShowSearchModal(true)}
+          >
+            <Icon name="search" size={24} color="white" />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Render defaultOrder and handle logic based on whether it's a past date */}
+      {defaultOrder && (
+        <>
+          {/* Show order details regardless of past or future date */}
+          <OrderDetails
+            orderDetails={defaultOrder}
+            selectedDate={selectedDate}
+            shift={shift}
+          />
+
+          {/* Handle logic for past dates */}
+          {isPastDate ? (
+            // View-only mode for past dates, no editing or submitting
             <>
-              <OrderDetails
-                orderDetails={defaultOrder}
-                selectedDate={selectedDate}
-                shift={shift}
-              />
               <OrderProductsList
-                products={
-                  orderDetails ? orderDetails.products : defaultOrder.products
-                }
-                isEditable={!isPastDate}
+                products={defaultOrder.products}
+                isEditable={false} // Disable edit mode for past dates
+              />
+            </>
+          ) : (
+            // Editable mode for current or future dates
+            <>
+              <OrderProductsList
+                products={defaultOrder.products}
+                isEditable={editable}
                 onQuantityChange={handleQuantityChange}
               />
+
+              {/* Show SubmitButton or OrderModal based on the editable state */}
               {editable ? (
-                <SubmitButton
-                  handleSubmit={handleSaveChanges}
-                  label="Save Changes"
-                />
+                <SubmitButton handleSubmit={handleSaveChanges} />
               ) : (
                 <>
                   <OrderModal
@@ -254,17 +315,19 @@ const PlaceOrderPage = ({ route }) => {
                     onSelect={handleSelectOrder}
                     onEdit={handleEditOrder}
                   />
-                  <SubmitButton
-                    handleSubmit={handleSubmit}
-                    label="Submit Order"
-                  />
+                  <SubmitButton handleSubmit={handleSubmit} />
                 </>
               )}
+
+              {/* Show search modal when adding products */}
+              <SearchProductModal
+                isVisible={showSearchModal}
+                onClose={() => setShowSearchModal(false)}
+                onAddProduct={handleAddProduct}
+              />
             </>
-          ) : (
-            <ErrorMessage message="No default order available." />
           )}
-        </View>
+        </>
       )}
     </View>
   );
@@ -275,6 +338,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffcc00",
     paddingTop: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  searchButton: {
+    padding: 10,
   },
 });
 
