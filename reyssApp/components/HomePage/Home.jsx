@@ -109,7 +109,7 @@ const HomePage = () => {
       {/* SL Enterprises Logo section */}
       <View style={styles.logoSection}>
         <Image
-          source={require("../../assets/SL (1).png")}
+          source={require("../../assets/SL.png")}
           style={styles.logo}
         />
         <Text style={styles.logoText}>
