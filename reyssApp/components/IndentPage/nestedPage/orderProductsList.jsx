@@ -69,24 +69,25 @@ const OrderProductsList = ({
       <Text style={[styles.itemText, { flex: 6 }]}>{item.name}</Text>
 
       {isEditable ? (
-        <TextInput
-          style={[styles.input, { flex: 1 }]}
-          keyboardType="numeric"
-          value={String(item.quantity)}
-          onChangeText={(text) => onQuantityChange(text, index)}
-        />
+        <View style={styles.editableQuantityContainer}>
+          <TextInput
+            style={styles.input}
+            keyboardType="numeric"
+            value={String(item.quantity)}
+            onChangeText={(text) => onQuantityChange(text, index)}
+          />
+          <Text style={styles.pktsText}> pkts</Text>
+        </View>
       ) : (
-        <Text style={[styles.itemText, { flex: 1 }]}>{item.quantity}</Text>
+        <Text style={[styles.itemText, { flex: 2 }]}>{item.quantity}  pkts</Text>
       )}
-
-      <Text style={[styles.itemText, { flex: 1 }]}>pkts</Text>
 
       {isEditable && (
         <TouchableOpacity
           onPress={() => handleRemoveProduct(item)}
           style={styles.removeButton}
         >
-          <Icon name="delete" size={20} color="red" />
+          <Icon name="delete" size={16} color="red" />
         </TouchableOpacity>
       )}
     </View>
@@ -96,8 +97,7 @@ const OrderProductsList = ({
     <View style={styles.orderListContainer}>
       <View style={styles.itemHeaderRow}>
         <Text style={[styles.itemHeaderText, { flex: 6 }]}>Item</Text>
-        <Text style={[styles.itemHeaderText, { flex: 1 }]}>Qty</Text>
-        <Text style={[styles.itemHeaderText, { flex: 1 }]}>Unit</Text>
+        <Text style={[styles.itemHeaderText, { flex: 2 }]}>Qty</Text>
       </View>
       <FlatList
         data={currentProducts}
@@ -128,9 +128,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 5,
+    alignItems: "center",
   },
   itemText: {
-    fontSize: 16,
+    fontSize: 14,
+  },
+  editableQuantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
     fontSize: 14,
@@ -138,8 +143,16 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     textAlign: "center",
-    width: 10,
-    marginHorizontal: 5,
+    paddingVertical: 3,
+    paddingHorizontal: 3,
+    width: 30,
+    marginRight: 5,
+  },
+  pktsText: {
+    fontSize: 14,
+  },
+  removeButton: {
+    padding: 5,
   },
 });
 

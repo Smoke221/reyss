@@ -1,21 +1,25 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const OrderDetails = ({ orderDetails, selectedDate, shift }) => {
-  console.log(orderDetails, selectedDate, shift);
+const OrderDetails = ({ orderDetails, selectedDate, shift, isEditable }) => {
+  console.log(orderDetails, selectedDate, shift, isEditable);
   
   return (
     <View style={styles.orderInfoContainer}>
-      {orderDetails.order.id && (
+      {/* Hide Order ID when in editable mode */}
+      {!isEditable && orderDetails.order.id && (
         <Text style={styles.orderText}>Order ID: {orderDetails.order.id}</Text>
       )}
+
       <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text>
-      {/* <Text style={styles.orderText}>Customer Name: Customer Name</Text> */}
-      {/* <Text style={styles.orderText}>Route: Route info here</Text> */}
       <Text style={styles.orderText}>Shift: {shift}</Text>
-      <Text style={styles.orderText}>
-        Total Amount: ₹{orderDetails.order.total_amount}
-      </Text>
+      
+      {/* Hide Total Amount when in editable mode */}
+      {!isEditable && (
+        <Text style={styles.orderText}>
+          Total Amount: ₹{orderDetails.order.total_amount}
+        </Text>
+      )}
     </View>
   );
 };

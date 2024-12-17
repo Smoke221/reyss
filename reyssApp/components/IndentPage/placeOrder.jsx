@@ -284,6 +284,7 @@ const PlaceOrderPage = ({ route }) => {
             orderDetails={defaultOrder}
             selectedDate={selectedDate}
             shift={shift}
+            isEditable={editable}
           />
 
           {/* Handle logic for past dates */}
@@ -306,7 +307,7 @@ const PlaceOrderPage = ({ route }) => {
 
               {/* Show SubmitButton or OrderModal based on the editable state */}
               {editable ? (
-                <SubmitButton handleSubmit={handleSaveChanges} />
+                <SubmitButton handleSubmit={handleSubmit} />
               ) : (
                 <>
                   <OrderModal

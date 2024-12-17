@@ -12,6 +12,7 @@ import moment from "moment";
 import { ipAddress } from "../../urls";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Import MaterialIcons
+import LoadingIndicator from "../general/Loader";
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -49,6 +50,21 @@ const TransactionsPage = () => {
       setTransactions(orders);
       setTotalOrderAmount(total_order_amount);
       setTotalAmountPaid(total_amount_paid);
+      
+      // // Calculate pending amount
+      // const pendingAmount = total_order_amount - total_amount_paid;
+
+      // // Check if the pending amount for this month/year is already stored
+      // const storedPendingAmount = await AsyncStorage.getItem(
+      //   `pendingAmount-${year}-${month}`
+      // );
+      // if (!storedPendingAmount) {
+      //   // Store the pending amount if not already stored for this month
+      //   await AsyncStorage.setItem(
+      //     `pendingAmount-${year}-${month}`,
+      //     JSON.stringify(pendingAmount)
+      //   );
+      // }
     } catch (error) {
       console.error("Error fetching transactions:", error);
       Alert.alert("Error", "Failed to fetch transactions. Please try again.");
@@ -124,7 +140,9 @@ const TransactionsPage = () => {
         <Text style={styles.totalText}>
           Total Invoice: ₹{totalOrderAmount || 0}
         </Text>
-        <Text style={styles.totalText}>Total Paid: ₹{totalAmountPaid || 0}</Text>
+        <Text style={styles.totalText}>
+          Total Paid: ₹{totalAmountPaid || 0}
+        </Text>
       </View>
 
       {/* Header for transactions */}
@@ -136,7 +154,7 @@ const TransactionsPage = () => {
 
       {/* Transactions */}
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <LoadingIndicator />
       ) : transactions.length > 0 ? (
         <FlatList
           data={transactions}

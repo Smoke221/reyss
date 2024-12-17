@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
   orderCard: {
     backgroundColor: "#fff",
     borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
+    padding: 10,
+    marginVertical: 8,
   },
   orderType: {
     fontSize: 24,

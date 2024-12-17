@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,34 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import LogOutButton from "../LogoutButton";
 import { useNavigation } from "@react-navigation/native";
-import PasswordChangeModal from "./PasswordChangeModal";
 import PasswordChangeButton from "../PasswordChangeButton";
+import ProfileModal from "./ProfileModal";
+import ProfileContent from "./ProfileContent";
+import PayHereContent from "./PayHereContent";
+import PaymentsHistoryContent from "./PaymentsHistoryContent";
 
 const ProfilePage = () => {
   const navigation = useNavigation();
+
+  const [modalData, setModalData] = useState({
+    visible: false,
+    title: "",
+    content: null,
+  });
+
+  // Function to open the modal with specific data
+  const openModal = (ContentComponent) => {
+    setModalData({
+      visible: true,
+      content: <ContentComponent />,
+    });
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setModalData({ ...modalData, visible: false });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -22,7 +45,10 @@ const ProfilePage = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Profile */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => openModal(ProfileContent)}
+        >
           <View style={styles.menuIconText}>
             <MaterialIcons name="person-outline" size={24} color="#ffcc00" />
             <Text style={styles.menuText}>Profile</Text>
@@ -30,8 +56,11 @@ const ProfilePage = () => {
           <MaterialIcons name="keyboard-arrow-down" size={24} color="#ffcc00" />
         </TouchableOpacity>
 
-        {/* Pay here */}
-        <TouchableOpacity style={styles.menuItem}>
+        {/* Pay Here */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => openModal(PayHereContent)}
+        >
           <View style={styles.menuIconText}>
             <MaterialIcons name="payment" size={24} color="#ffcc00" />
             <Text style={styles.menuText}>Pay here</Text>
@@ -40,7 +69,10 @@ const ProfilePage = () => {
         </TouchableOpacity>
 
         {/* Payments History */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => openModal(PaymentsHistoryContent)}
+        >
           <View style={styles.menuIconText}>
             <MaterialIcons name="history" size={24} color="#ffcc00" />
             <Text style={styles.menuText}>Payments History</Text>
@@ -79,6 +111,14 @@ const ProfilePage = () => {
           <MaterialIcons name="keyboard-arrow-down" size={24} color="#ffcc00" />
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Reusable Modal */}
+      <ProfileModal
+        visible={modalData.visible}
+        onClose={closeModal}
+        content={modalData.content}
+      />
+
       <PasswordChangeButton />
       <LogOutButton navigation={navigation} />
 
@@ -119,11 +159,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderRadius: 10,
-    elevation: 3, // Shadow effect for Android
-    shadowColor: "#000", // Shadow properties for iOS
-    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   menuIconText: {
     flexDirection: "row",
@@ -131,19 +171,15 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 18,
-    fontWeight: "500",
-    marginLeft: 15,
+    marginLeft: 10,
     color: "#333",
   },
   footer: {
-    padding: 15,
-    // backgroundColor: "#ffcc00",
     alignItems: "center",
-    justifyContent: "center",
+    paddingVertical: 20,
   },
   footerText: {
-    color: "black",
-    fontSize: 10,
+    color: "#999",
   },
 });
 
