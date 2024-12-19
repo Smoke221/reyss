@@ -99,8 +99,39 @@ const changePasswordController = async (req, res) => {
   }
 };
 
+const orderHistoryController = async (req, res) => {
+  try {
+    const customerId = req.userID;
+    console.log(`🪵 → req:`, req.query)
+
+    if (!customerId) {
+      res.status(400).send({ status: false, message: "Insufficient params!!" });
+      return;
+    }
+    const params = {
+      type: req.query.type,
+      page: req.query.page,
+      limit: req.query.limit,
+      orderBy: req.query.orderBy == "asc" ? "ASC" : "DESC",
+    };
+
+    const getResponse = await userService.orderHistoryService(
+      customerId,
+      params
+    );
+    res.status(getResponse.statusCode).send(getResponse.response);
+  } catch (err) {
+    console.error("Error in orderHistoryController:", err.message);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch user orders.",
+    });
+  }
+};
+
 module.exports = {
   loginController,
   userDetailsController,
   changePasswordController,
+  orderHistoryController,
 };

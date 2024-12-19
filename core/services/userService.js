@@ -5,6 +5,7 @@ const {
   getUserById,
   changePassword,
   updateUser,
+  orderHistory,
 } = require("./dbUtility");
 const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 
@@ -36,7 +37,7 @@ const loginUser = async (username, password) => {
 
     const token = jwt.sign(
       { id: user.customer_id, username: user.username, role: user.role },
-      'smokeFirstMobileApp',
+      "smokeFirstMobileApp",
       { expiresIn: "1h" }
     );
 
@@ -103,8 +104,27 @@ const changePasswordService = async (id, oldPassword, newPassword) => {
   }
 };
 
+const orderHistoryService = async (customerId, params) => {
+  try {
+    const getResponse = await orderHistory(customerId, params);
+
+    return {
+      statusCode: 200,
+      response: {
+        status: true,
+        message: "Orders retrieved.",
+        orders: getResponse.response,
+        count: getResponse.count,
+      },
+    };
+  } catch (err) {
+    throw new Error(err.message || "Internal Server Error");
+  }
+};
+
 module.exports = {
   loginUser,
   getUserDetailsByCustomerId,
   changePasswordService,
+  orderHistoryService,
 };

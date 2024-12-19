@@ -3,6 +3,7 @@ const {
   loginController,
   userDetailsController,
   changePasswordController,
+  orderHistoryController,
 } = require("../controllers/userController");
 const { authenticate } = require("../middleware/authenticate");
 
@@ -13,5 +14,7 @@ userRouter.post("/auth", loginController);
 userRouter.get("/userDetails", authenticate, userDetailsController);
 
 userRouter.post("/changePass", authenticate, changePasswordController);
+
+userRouter.get("/orderHistory", authenticate, orderHistoryController);
 
 module.exports = userRouter;
