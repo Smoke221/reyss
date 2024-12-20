@@ -34,18 +34,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
   passwordChangeButton: {
     backgroundColor: "#ffcc00",
     paddingVertical: 10,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     borderRadius: 25,
   },
   passwordChangeButtonText: {
-    fontSize: 18,
+    color: "white",
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#fff",
   },
 });
 

@@ -56,6 +56,22 @@ const ProfilePage = () => {
           <MaterialIcons name="keyboard-arrow-down" size={24} color="#ffcc00" />
         </TouchableOpacity>
 
+        {/* Orders */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => openModal(ProfileContent)}
+        >
+          <View style={styles.menuIconText}>
+            <MaterialIcons
+              name="format-list-numbered"
+              size={24}
+              color="#ffcc00"
+            />
+            <Text style={styles.menuText}>Orders</Text>
+          </View>
+          <MaterialIcons name="keyboard-arrow-down" size={24} color="#ffcc00" />
+        </TouchableOpacity>
+
         {/* Pay Here */}
         <TouchableOpacity
           style={styles.menuItem}
@@ -176,9 +192,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 5,
   },
   footerText: {
+    fontSize: 10,
     color: "#999",
   },
 });

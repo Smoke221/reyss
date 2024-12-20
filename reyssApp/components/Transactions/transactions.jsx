@@ -50,7 +50,7 @@ const TransactionsPage = () => {
       setTransactions(orders);
       setTotalOrderAmount(total_order_amount);
       setTotalAmountPaid(total_amount_paid);
-      
+
       // // Calculate pending amount
       // const pendingAmount = total_order_amount - total_amount_paid;
 
@@ -168,7 +168,11 @@ const TransactionsPage = () => {
           )}
         />
       ) : (
-        <Text>No transactions for this month.</Text>
+        <View>
+          <Text style={styles.messageText}>
+            No indents placed for this month.
+          </Text>
+        </View>
       )}
     </View>
   );
@@ -234,6 +238,14 @@ const styles = StyleSheet.create({
   amountText: {
     width: 90,
     textAlign: "center",
+  },
+  messageText: {
+    fontSize: 18,
+    color: "#333",
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 24,
+    marginTop: 50,
   },
 });
 

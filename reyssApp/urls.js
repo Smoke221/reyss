@@ -5,7 +5,7 @@ const environments = {
 };
 
 // Use the ENV variable to select the environment (defaults to 'home')
-const selectedEnvironment = process.env.ENV || 'home'; 
+const selectedEnvironment = process.env.ENV || 'work'; 
 
 // Export the IP address for the selected environment
 export const ipAddress = environments[selectedEnvironment];

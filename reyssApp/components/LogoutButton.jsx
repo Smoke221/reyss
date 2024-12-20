@@ -16,15 +16,6 @@ const LogOutButton = ({ navigation }) => {
           try {
             await AsyncStorage.removeItem("userAuthToken");
 
-            // const token = await AsyncStorage.getItem("userAuthToken");
-            // const response = await fetch('http://localhost:8090/logout', {
-            //   method: 'POST',
-            //   headers: {
-            //     'Content-Type': 'application/json',
-            //     'Authorization': `Bearer ${token}`,
-            //   },
-            // });
-
             Alert.alert("Logout Successful", "You have been logged out.");
             navigation.navigate("Login");
           } catch (error) {
@@ -51,18 +42,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
   logoutButton: {
     backgroundColor: "#ffcc00",
     paddingVertical: 10,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     borderRadius: 25,
   },
   logoutButtonText: {
-    fontSize: 18,
+    color: "white",
+    fontSize: 14,
     fontWeight: "bold",
-    color: "#fff",
   },
 });
 

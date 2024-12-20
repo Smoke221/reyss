@@ -27,13 +27,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     backgroundColor: "#fff",
-    padding: 20,
+    paddingBottom: 10,
     borderRadius: 10,
-    width: "80%",
+    width: "85%",
     alignItems: "center",
   },
   modalTitle: {

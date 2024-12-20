@@ -6,9 +6,10 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // For storing and retrieving the token
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { ipAddress } from "../../urls";
+import LoadingIndicator from "../general/Loader";
 
 const ProfileContent = () => {
   const [loading, setLoading] = useState(true);
@@ -17,43 +18,35 @@ const ProfileContent = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch user data on component mount
     const fetchUserDetails = async () => {
       try {
-        // Get the token from AsyncStorage
         const token = await AsyncStorage.getItem("userAuthToken");
-        if (!token) {
-          throw new Error("No authorization token found.");
-        }
+        if (!token) throw new Error("No authorization token found.");
 
-        // API call to /userDetails with the Authorization Bearer token
-        const response = await axios.get(`http://${ipAddress}:8090/userDetails`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `http://${ipAddress}:8090/userDetails`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const { user, defaultOrder } = response.data;
-        setUserData(user); // Set the user data
-        setDefaultOrder(defaultOrder); // Set the default order
+        setUserData(user);
+        setDefaultOrder(defaultOrder);
       } catch (err) {
         setError(err.message || "Failed to fetch data.");
       } finally {
-        setLoading(false); // Stop the loading spinner
+        setLoading(false);
       }
     };
 
     fetchUserDetails();
   }, []);
 
-  // Handle loading and error states
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#ffcc00" />
-        <Text>Loading...</Text>
-      </View>
-    );
+    <LoadingIndicator />;
   }
 
   if (error) {
@@ -66,33 +59,39 @@ const ProfileContent = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>User Details</Text>
-
-      {/* Display User Information */}
       <View style={styles.section}>
-        <Text style={styles.title}>Name: {userData?.name}</Text>
-        <Text>Email: {userData?.email}</Text>
-        <Text>Phone: {userData?.phone}</Text>
-        {/* Add more user details as necessary */}
+        <Text style={styles.header}>User Details</Text>
+        <View style={styles.userInfo}>
+          <Text style={styles.title}>Name: {userData?.name}</Text>
+          <Text style={styles.detailText}>Phone: {userData?.phone}</Text>
+          <Text style={styles.detailText}>Username: {userData?.username}</Text>
+          <Text style={styles.detailText}>
+            Delivery Address: {userData?.delivery_address}
+          </Text>
+          <Text style={styles.detailText}>Route: {userData?.route}</Text>
+        </View>
       </View>
 
-      {/* Display Default Order */}
       {defaultOrder ? (
         <View style={styles.section}>
-          <Text style={styles.title}>Default Order</Text>
-          <Text>Order ID: {defaultOrder.id}</Text>
-          <Text>Order Date: {new Date(defaultOrder.date).toDateString()}</Text>
-          {/* Assuming defaultOrder contains a list of products */}
-          <Text>Products:</Text>
-          {defaultOrder.products.map((product, index) => (
-            <Text key={index}>
-              {product.name} - {product.quantity} x {product.price} USD
+          <Text style={styles.header}>Default Order Products</Text>
+          <View style={styles.orderInfo}>
+            <Text style={styles.detailText}>
+              Total Amount: ₹{defaultOrder.order.total_amount}
             </Text>
-          ))}
+            {defaultOrder.products.map((product, index) => (
+              <View key={index} style={styles.productItem}>
+                <Text style={styles.productName}>{product.name}</Text>
+                <Text style={styles.productDetail}>
+                  Quantity: {product.quantity} | Price: ₹{product.price}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       ) : (
         <View style={styles.section}>
-          <Text style={styles.title}>No Default Order</Text>
+          <Text style={styles.header}>No Default Order Available</Text>
         </View>
       )}
     </ScrollView>
@@ -102,8 +101,6 @@ const ProfileContent = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
-    backgroundColor: "#f0f0f0",
   },
   loadingContainer: {
     flex: 1,
@@ -117,26 +114,57 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "red",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 16,
   },
   section: {
-    marginBottom: 20,
-    padding: 15,
+    marginBottom: 10,
+    paddingVertical: 20,
     backgroundColor: "#fff",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    elevation: 2,
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#333",
+  },
+  userInfo: {
+    marginBottom: 10,
+  },
+  orderInfo: {
+    marginTop: 10,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 5,
+    color: "#333",
+  },
+  detailText: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: "#666",
+  },
+  subHeader: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  productItem: {
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 5,
+    marginVertical: 5,
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  productDetail: {
+    fontSize: 14,
+    color: "#777",
   },
 });
 
