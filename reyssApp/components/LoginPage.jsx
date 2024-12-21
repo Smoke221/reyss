@@ -16,9 +16,9 @@ import { ipAddress } from "../urls";
 const LoginPage = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  
+
   const handleLogin = async () => {
     setIsLoading(true);
     try {
@@ -86,9 +86,19 @@ const LoginPage = ({ navigation }) => {
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!isPasswordVisible} // Toggle secureTextEntry based on state
               placeholderTextColor="#aaa"
             />
+            <TouchableOpacity
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            >
+              <Icon
+                name={isPasswordVisible ? "visibility" : "visibility-off"}
+                size={24}
+                color="#aaa"
+                style={styles.icon}
+              />
+            </TouchableOpacity>
           </View>
 
           {/* Login Button */}
