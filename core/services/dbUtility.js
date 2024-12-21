@@ -28,9 +28,22 @@ const getUserById = async (customerId) => {
       "SELECT customer_id, name, username, phone, delivery_address, route FROM users WHERE customer_id = ?";
     const [user] = await executeQuery(userQuery, [customerId]);
 
-    const latestOrderQuery = `
-      SELECT id, customer_id, total_amount, order_type, placed_on FROM orders WHERE customer_id = ? ORDER BY placed_on DESC LIMIT 1
-    `;
+    const latestOrderQuery = `SELECT 
+                                  o.id, 
+                                  o.customer_id, 
+                                  o.total_amount, 
+                                  o.order_type, 
+                                  o.placed_on, 
+                                  op.quantity
+                              FROM 
+                                  orders o
+                              JOIN 
+                                  order_products op ON o.id = op.order_id
+                              WHERE 
+                                  o.customer_id = ? 
+                              ORDER BY 
+                                  o.placed_on DESC 
+                              LIMIT 1`;
     const [latestOrder] = await executeQuery(latestOrderQuery, [customerId]);
 
     const defaultOrderQuery = `
