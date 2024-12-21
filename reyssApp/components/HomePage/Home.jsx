@@ -156,7 +156,9 @@ const HomePage = () => {
           {lastIndentDate ? (
             <>
               <View>
-                <Text style={[styles.cardText, styles.boldText]}>Last Indent</Text>
+                <Text style={[styles.cardText, styles.boldText]}>
+                  Last Indent
+                </Text>
                 <Text style={styles.cardText}>{orderType} Order</Text>
                 <Text style={styles.cardText}>Quantity - {quantity}</Text>
                 <Text style={styles.cardText}>
@@ -164,7 +166,9 @@ const HomePage = () => {
                 </Text>
               </View>
               <View style={styles.indentDetails}>
-                <Text style={[styles.indentAmount, styles.boldText]}>₹ {totalAmount}</Text>
+                <Text style={[styles.indentAmount, styles.boldText]}>
+                  ₹ {totalAmount}
+                </Text>
                 {/* <MaterialIcons
                   name="keyboard-arrow-right"
                   size={24}

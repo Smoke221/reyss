@@ -17,7 +17,7 @@ import { ipAddress } from "../../urls";
 
 const PlaceOrderPage = ({ route }) => {
   const { order, selectedDate, shift } = route.params;
-  const [orderDetails, setOrderDetails] = useState(null);
+  const [orderDetails, setOrderDetails] = useState([null]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [defaultOrder, setDefaultOrder] = useState(null);
@@ -28,6 +28,7 @@ const PlaceOrderPage = ({ route }) => {
   const [updatedQuantities, setUpdatedQuantities] = useState({});
 
   const isPastDate = moment(selectedDate).isBefore(moment(), "day");
+  const isCurrentDate = moment(selectedDate).isSame(moment(), "day");
 
   useEffect(() => {
     const fetchDefaultOrder = async () => {
@@ -234,6 +235,7 @@ const PlaceOrderPage = ({ route }) => {
         Alert.alert("Error", "Authorization token is missing.");
         return;
       }
+      const orderDate = new Date().toISOString();
 
       const options = {
         method: "POST",
@@ -241,6 +243,7 @@ const PlaceOrderPage = ({ route }) => {
         data: {
           products: defaultOrder.products,
           orderType: shift,
+          orderDate,
         },
         headers: {
           Authorization: `Bearer ${userAuthToken}`,
@@ -254,20 +257,80 @@ const PlaceOrderPage = ({ route }) => {
         await AsyncStorage.removeItem("modifiedOrder");
 
         Alert.alert("Success", "Order has been submitted successfully.");
-        navigation.navigate("IndentStack");
+        navigation.navigate("IndentPage");
       } else {
         throw new Error("Unexpected response status.");
       }
     } catch (error) {
       console.error("Submit error:", error);
       if (error.response) {
-        console.error("Server error:", error.response.data);
+        console.log(error.response.data.message);
         Alert.alert(
           "Error",
           error.response.data.message || "Server error occurred."
         );
       } else if (error.request) {
-        console.error("Network error:", error.request);
+        console.log("Network error:", error.request);
+        Alert.alert("Error", "Network error, please check your connection.");
+      } else {
+        console.error("Error:", error.message);
+        Alert.alert("Error", error.message || "An error occurred.");
+      }
+    }
+  };
+
+  const handleSubmitEdit = async () => {
+    try {
+      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      if (!userAuthToken) {
+        Alert.alert("Error", "Authorization token is missing.");
+        return;
+      }
+
+      const modified = await AsyncStorage.getItem("modifiedOrder");
+      const data = JSON.parse(modified);
+
+      // Transform the data
+      const transformedData = data.map((item) => ({
+        id: item.product_id,
+        quantity: item.quantity,
+      }));
+      const orderDate = new Date().toISOString();
+
+      const options = {
+        method: "POST",
+        url: `http://${ipAddress}:8090/place`,
+        data: {
+          products: transformedData,
+          orderType: shift,
+          orderDate,
+        },
+        headers: {
+          Authorization: `Bearer ${userAuthToken}`,
+          "Content-Type": "application/json",
+        },
+      };
+
+      const response = await axios(options);
+      if (response.status === 200) {
+        // Clear the modified order after successful submission
+        await AsyncStorage.removeItem("modifiedOrder");
+
+        Alert.alert("Success", "Order has been submitted successfully.");
+        navigation.navigate("IndentPage");
+      } else {
+        throw new Error("Unexpected response status.");
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      if (error.response) {
+        console.log(error.response.data.message);
+        Alert.alert(
+          "Failure",
+          error.response.data.message || "Server error occurred."
+        );
+      } else if (error.request) {
+        console.log("Network error:", error.request);
         Alert.alert("Error", "Network error, please check your connection.");
       } else {
         console.error("Error:", error.message);
@@ -305,26 +368,30 @@ const PlaceOrderPage = ({ route }) => {
       {/* Render defaultOrder and handle logic based on whether it's a past date */}
       {defaultOrder && (
         <>
-          {/* Show order details regardless of past or future date */}
-          <OrderDetails
-            orderDetails={defaultOrder}
-            selectedDate={selectedDate}
-            shift={shift}
-            isEditable={editable}
-          />
-
           {/* Handle logic for past dates */}
-          {isPastDate ? (
+          {isPastDate || (isCurrentDate && !orderDetails) ? (
             // View-only mode for past dates, no editing or submitting
             <>
+              <OrderDetails
+                orderDetails={orderDetails}
+                selectedDate={selectedDate}
+                shift={shift}
+                isEditable={editable}
+              />
               <OrderProductsList
-                products={defaultOrder.products}
+                products={orderDetails.products}
                 isEditable={false} // Disable edit mode for past dates
               />
             </>
           ) : (
             // Editable mode for current or future dates
             <>
+              <OrderDetails
+                orderDetails={defaultOrder}
+                selectedDate={selectedDate}
+                shift={shift}
+                isEditable={editable}
+              />
               <OrderProductsList
                 products={defaultOrder.products}
                 isEditable={editable}
@@ -333,7 +400,7 @@ const PlaceOrderPage = ({ route }) => {
 
               {/* Show SubmitButton or OrderModal based on the editable state */}
               {editable ? (
-                <SubmitButton handleSubmit={handleSubmit} />
+                <SubmitButton handleSubmit={handleSubmitEdit} />
               ) : (
                 <>
                   <OrderModal

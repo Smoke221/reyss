@@ -16,6 +16,10 @@ const LogOutButton = ({ navigation }) => {
           try {
             await AsyncStorage.removeItem("userAuthToken");
 
+            await AsyncStorage.removeItem("default");
+            await AsyncStorage.removeItem("customerId");
+            await AsyncStorage.removeItem("modifiedOrder");
+
             Alert.alert("Logout Successful", "You have been logged out.");
             navigation.navigate("Login");
           } catch (error) {
