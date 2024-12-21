@@ -122,8 +122,8 @@ const PlaceOrderPage = ({ route }) => {
 
       if (isDuplicate) {
         Alert.alert(
-          "Product Already Exists",
-          "This product is already in your order."
+          "Item Exists",
+          "Please increase the quantity."
         );
         return;
       }

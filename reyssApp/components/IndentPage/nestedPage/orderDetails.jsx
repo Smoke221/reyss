@@ -2,8 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 const OrderDetails = ({ orderDetails, selectedDate, shift, isEditable }) => {
-  console.log(orderDetails, selectedDate, shift, isEditable);
-  
+  const total_amount = orderDetails.order.total_amount;
   return (
     <View style={styles.orderInfoContainer}>
       {/* Hide Order ID when in editable mode */}
@@ -13,13 +12,11 @@ const OrderDetails = ({ orderDetails, selectedDate, shift, isEditable }) => {
 
       <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text>
       <Text style={styles.orderText}>Shift: {shift}</Text>
-      
+
       {/* Hide Total Amount when in editable mode */}
-      {/* {!isEditable && (
-        <Text style={styles.orderText}>
-          Total Amount: ₹{orderDetails.order.total_amount}
-        </Text>
-      )} */}
+      {!isEditable && (
+        <Text style={styles.orderText}>Total Amount: ₹{total_amount}</Text>
+      )}
     </View>
   );
 };

@@ -55,14 +55,14 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
       <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.name}</Text>
         <Text style={styles.productDetails}>
-          {item.category} | {item.unit}
+          Price: ₹{item.discountPrice} | {item.category}
         </Text>
       </View>
       <TouchableOpacity 
         style={styles.addButton} 
         onPress={() => onAddProduct(item)}
       >
-        <Ionicons name="add" size={24} color="white" />
+        <Ionicons name="add" size={18} color="white" />
       </TouchableOpacity>
     </View>
   );
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    height: '80%',
+    height: '75%',
     padding: 20,
   },
   searchContainer: {
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   productName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   productDetails: {
