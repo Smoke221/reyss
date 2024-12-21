@@ -13,6 +13,7 @@ import { ipAddress } from "../../urls";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Import MaterialIcons
 import LoadingIndicator from "../general/Loader";
+import RefreshButton from "../general/RefreshButton";
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -95,10 +96,16 @@ const TransactionsPage = () => {
     setViewedMonth(nextMonth.format("MM"));
     setViewedYear(nextMonth.format("YYYY"));
   };
+  const handleRefresh = async () => {
+    fetchTransactions(viewedMonth, viewedYear);
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.tabTitle}>Transactions</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Indent</Text>
+        <RefreshButton onRefresh={handleRefresh} />
+      </View>
 
       {/* Month Navigation */}
       <View style={styles.navigation}>
@@ -183,11 +190,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0f0f0",
   },
-  tabTitle: {
+  header: {
     backgroundColor: "#ffcc00",
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 30,
     paddingBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#fff",

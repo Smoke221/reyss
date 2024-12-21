@@ -6,27 +6,25 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-const OrderProductsList = ({
-  products,
-  isEditable,
-  onQuantityChange,
-}) => {
+const OrderProductsList = ({ products, isEditable, onQuantityChange }) => {
   const [modifiedOrder, setModifiedOrder] = useState(null);
 
-  // Load the modified order from AsyncStorage if editable
   useEffect(() => {
     const loadModifiedOrder = async () => {
       try {
         if (isEditable) {
           const storedOrder = await AsyncStorage.getItem("modifiedOrder");
           if (storedOrder) {
-            setModifiedOrder(JSON.parse(storedOrder).products);
+            const parsedOrder = JSON.parse(storedOrder);
+            setModifiedOrder(parsedOrder);
           }
         } else {
+          // When not editable, clear modified order to show default products
           setModifiedOrder(null);
         }
       } catch (error) {
@@ -35,34 +33,31 @@ const OrderProductsList = ({
     };
 
     loadModifiedOrder();
-  }, [isEditable]);
+  }, [isEditable, products]);
 
   const handleRemoveProduct = async (productToRemove) => {
     try {
       const updatedProducts = modifiedOrder.filter(
         (product) => product.product_id !== productToRemove.product_id
       );
-      console.log(`🪵 → updatedProducts:`, updatedProducts)
 
-      const updatedOrder = {
-        ...modifiedOrder,
-        products: updatedProducts,
-      };
+      // Update state first
+      setModifiedOrder(updatedProducts);
 
-      // Update state
-      setModifiedOrder(updatedOrder);
-
-      // Save to AsyncStorage
-      await AsyncStorage.setItem("modifiedOrder", JSON.stringify(updatedOrder));
+      // Then update AsyncStorage
+      await AsyncStorage.setItem(
+        "modifiedOrder",
+        JSON.stringify(updatedProducts)
+      );
     } catch (error) {
       console.error("Error removing product:", error);
       Alert.alert("Error", "Could not remove product");
     }
   };
 
-  // Use either modifiedOrder (if editable) or the passed products
-  const currentProducts =
-    isEditable && modifiedOrder ? modifiedOrder : products;
+  // Always use products (default order) when not editable
+  // Use modifiedOrder only when editable and it exists
+  const currentProducts = isEditable ? modifiedOrder || products : products;
 
   const renderItem = ({ item, index }) => (
     <View style={styles.itemRow}>
@@ -79,7 +74,7 @@ const OrderProductsList = ({
           <Text style={styles.pktsText}> pkts</Text>
         </View>
       ) : (
-        <Text style={[styles.itemText, { flex: 2 }]}>{item.quantity}  pkts</Text>
+        <Text style={[styles.itemText, { flex: 2 }]}>{item.quantity} pkts</Text>
       )}
 
       {isEditable && (

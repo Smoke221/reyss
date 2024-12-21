@@ -17,7 +17,7 @@ const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => (
           </Text>
         </>
       ) : (
-        <Text style={styles.naText}>N/A</Text>
+        <Text style={styles.naText}>No Indent</Text>
       )}
     </View>
 

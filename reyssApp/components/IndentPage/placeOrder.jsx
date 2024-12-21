@@ -108,9 +108,15 @@ const PlaceOrderPage = ({ route }) => {
 
   const handleAddProduct = async (product) => {
     try {
-      // Check if the product already exists in the list
-      const isDuplicate = defaultOrder.products.some(
-        (existingProduct) => existingProduct.product_id === product.product_id
+      // Get current modified order from AsyncStorage
+      const storedOrder = await AsyncStorage.getItem("modifiedOrder");
+      const currentProducts = storedOrder
+        ? JSON.parse(storedOrder)
+        : defaultOrder?.products || [];
+
+      // Check if the product already exists
+      const isDuplicate = currentProducts.some(
+        (existingProduct) => existingProduct.product_id === product.id
       );
 
       if (isDuplicate) {
@@ -121,22 +127,26 @@ const PlaceOrderPage = ({ route }) => {
         return;
       }
 
-      // Add product to the default order with quantity 1
-      const updatedProducts = [
-        ...(defaultOrder?.products || []),
-        { ...product, quantity: 1 },
-      ];
-
-      const updatedOrder = {
-        ...defaultOrder,
-        products: updatedProducts,
+      // Create new product object
+      const newProduct = {
+        category: product.category,
+        name: product.name,
+        price: product.discountPrice || product.price,
+        product_id: product.id,
+        quantity: 1,
       };
 
+      // Add new product to current products
+      const updatedProducts = [...currentProducts, newProduct];
+
       // Update state
-      setDefaultOrder(updatedOrder);
+      setDefaultOrder({ ...defaultOrder, products: updatedProducts });
 
       // Save to AsyncStorage
-      await AsyncStorage.setItem("modifiedOrder", JSON.stringify(updatedOrder));
+      await AsyncStorage.setItem(
+        "modifiedOrder",
+        JSON.stringify(updatedProducts)
+      );
 
       // Close search modal
       setShowSearchModal(false);
@@ -147,20 +157,35 @@ const PlaceOrderPage = ({ route }) => {
   };
 
   const handleQuantityChange = async (text, index) => {
-    const updatedProducts = [...defaultOrder.products];
-    const parsedQuantity = parseInt(text, 10);
+    try {
+      // Get current products from AsyncStorage
+      const storedOrder = await AsyncStorage.getItem("modifiedOrder");
+      const currentProducts = storedOrder
+        ? JSON.parse(storedOrder)
+        : defaultOrder?.products || [];
 
-    updatedProducts[index].quantity = isNaN(parsedQuantity)
-      ? 0
-      : parsedQuantity;
+      // Create a new array of products
+      const updatedProducts = [...currentProducts];
+      const parsedQuantity = parseInt(text, 10);
 
-    const updatedOrder = { ...defaultOrder, products: updatedProducts };
+      // Update quantity for the specific product
+      updatedProducts[index] = {
+        ...updatedProducts[index],
+        quantity: isNaN(parsedQuantity) ? 0 : parsedQuantity,
+      };
 
-    // Update state
-    setDefaultOrder(updatedOrder);
+      // Update state with new products
+      setDefaultOrder({ ...defaultOrder, products: updatedProducts });
 
-    // Save to AsyncStorage
-    await AsyncStorage.setItem("modifiedOrder", JSON.stringify(updatedOrder));
+      // Save to AsyncStorage - store just the products array
+      await AsyncStorage.setItem(
+        "modifiedOrder",
+        JSON.stringify(updatedProducts)
+      );
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      Alert.alert("Error", "Could not update quantity");
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -229,6 +254,7 @@ const PlaceOrderPage = ({ route }) => {
         await AsyncStorage.removeItem("modifiedOrder");
 
         Alert.alert("Success", "Order has been submitted successfully.");
+        navigation.navigate("IndentStack");
       } else {
         throw new Error("Unexpected response status.");
       }

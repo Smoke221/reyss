@@ -6,6 +6,7 @@ import moment from "moment";
 import { ipAddress } from "../../urls";
 import CalendarComponent from "./calendar";
 import OrdersList from "./orderList";
+import RefreshButton from "../general/RefreshButton";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
@@ -74,6 +75,10 @@ const IndentPage = () => {
     setSelectedDate(dateString);
   };
 
+  const handleRefresh = async () => {
+    fetchOrders();
+  };
+
   // Memoizing orders for the selected date
   const { amOrder, pmOrder } = useMemo(() => {
     const dayOrders = orders[selectedDate] || {};
@@ -87,6 +92,7 @@ const IndentPage = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Indent</Text>
+        <RefreshButton onRefresh={handleRefresh} />
       </View>
 
       {/* Calendar Component */}
@@ -118,6 +124,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 30,
     paddingBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerText: {
     fontSize: 24,

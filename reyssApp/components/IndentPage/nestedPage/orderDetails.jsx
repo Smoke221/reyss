@@ -7,19 +7,19 @@ const OrderDetails = ({ orderDetails, selectedDate, shift, isEditable }) => {
   return (
     <View style={styles.orderInfoContainer}>
       {/* Hide Order ID when in editable mode */}
-      {!isEditable && orderDetails.order.id && (
+      {/* {!isEditable && orderDetails.order.id && (
         <Text style={styles.orderText}>Order ID: {orderDetails.order.id}</Text>
-      )}
+      )} */}
 
       <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text>
       <Text style={styles.orderText}>Shift: {shift}</Text>
       
       {/* Hide Total Amount when in editable mode */}
-      {!isEditable && (
+      {/* {!isEditable && (
         <Text style={styles.orderText}>
           Total Amount: ₹{orderDetails.order.total_amount}
         </Text>
-      )}
+      )} */}
     </View>
   );
 };
