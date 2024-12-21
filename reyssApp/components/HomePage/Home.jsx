@@ -79,6 +79,7 @@ const HomePage = () => {
       const lastIndentDate = latestOrder?.placed_on || "";
       const totalAmount = latestOrder?.total_amount || 0;
       const orderType = latestOrder?.order_type || "";
+      const quantity = latestOrder?.quantity || 0;
 
       return {
         userDetails,
@@ -86,6 +87,7 @@ const HomePage = () => {
           lastIndentDate,
           totalAmount,
           orderType,
+          quantity,
         },
       };
     } catch (err) {
@@ -97,7 +99,8 @@ const HomePage = () => {
 
   // Destructure userDetails and lastOrderDetails or use empty object to prevent errors
   const { customerName, customerID, route } = userDetails || {};
-  const { lastIndentDate, totalAmount, orderType } = lastOrderDetails || {};
+  const { lastIndentDate, totalAmount, orderType, quantity } =
+    lastOrderDetails || {};
 
   return (
     <View style={styles.container}>
@@ -108,10 +111,7 @@ const HomePage = () => {
 
       {/* SL Enterprises Logo section */}
       <View style={styles.logoSection}>
-        <Image
-          source={require("../../assets/SL.png")}
-          style={styles.logo}
-        />
+        <Image source={require("../../assets/SL.png")} style={styles.logo} />
         <Text style={styles.logoText}>
           <Text style={styles.boldText}>SL Enterprises</Text> {"\n" + "\n"}
           Proprietor Lokesh Naidu
@@ -156,19 +156,20 @@ const HomePage = () => {
           {lastIndentDate ? (
             <>
               <View>
-                <Text style={styles.cardText}>Last Indent:</Text>
+                <Text style={[styles.cardText, styles.boldText]}>Last Indent</Text>
                 <Text style={styles.cardText}>{orderType} Order</Text>
+                <Text style={styles.cardText}>Quantity - {quantity}</Text>
                 <Text style={styles.cardText}>
-                  Date: {lastIndentDate ? formatDate(lastIndentDate) : "N/A"}
+                  Date - {lastIndentDate ? formatDate(lastIndentDate) : "N/A"}
                 </Text>
               </View>
               <View style={styles.indentDetails}>
-                <Text style={styles.indentAmount}>₹ {totalAmount}</Text>
-                <MaterialIcons
+                <Text style={[styles.indentAmount, styles.boldText]}>₹ {totalAmount}</Text>
+                {/* <MaterialIcons
                   name="keyboard-arrow-right"
                   size={24}
                   color="#ffcc00"
-                />
+                /> */}
               </View>
             </>
           ) : (
