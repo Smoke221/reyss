@@ -8,18 +8,24 @@ const {
 const placeOrderController = async (req, res) => {
   try {
     const customerId = req.userID;
-    const { products, orderType } = req.body;
+    const { products, orderType, orderDate } = req.body;
 
     const checkResult = await checkOrderService(
       customerId,
       orderType,
-      products
+      products,
+      orderDate
     );
+
+    if (checkResult && !checkResult.response.status) {
+      throw new Error(`${checkResult.response.message}`);
+    }
 
     const orderData = {
       products,
       orderType,
       totalAmount: checkResult.response.data.totalAmount,
+      orderDate: Math.floor(new Date(orderDate).getTime() / 1000),
     };
 
     const result = await placeOrderService(customerId, orderData);
@@ -45,7 +51,7 @@ const checkOrderController = async (req, res) => {
       });
     }
 
-    const { products, orderType } = req.body;
+    const { products, orderType, orderDate } = req.body;
 
     // Validate orderType
     if (!orderType || !["AM", "PM"].includes(orderType)) {
@@ -54,6 +60,7 @@ const checkOrderController = async (req, res) => {
         message: "Not a valid order type.",
       });
     }
+
     // Validate products array
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({
@@ -62,10 +69,14 @@ const checkOrderController = async (req, res) => {
       });
     }
 
+    // Convert orderDate to GMT epoch (seconds)
+    const orderEpochDate = Math.floor(new Date(orderDate).getTime() / 1000);
+
     const checkResult = await checkOrderService(
       customerId,
       orderType,
-      products
+      products,
+      orderEpochDate
     );
 
     if (!checkResult.status) {

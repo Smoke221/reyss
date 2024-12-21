@@ -34,13 +34,15 @@ const getUserById = async (customerId) => {
                                   o.total_amount, 
                                   o.order_type, 
                                   o.placed_on, 
-                                  op.quantity
+                                  SUM(op.quantity) AS quantity
                               FROM 
                                   orders o
                               JOIN 
                                   order_products op ON o.id = op.order_id
                               WHERE 
                                   o.customer_id = ? 
+                              GROUP BY
+                                  o.id
                               ORDER BY 
                                   o.placed_on DESC 
                               LIMIT 1`;
@@ -96,7 +98,6 @@ const getProductss = async () => {
   try {
     let query = "SELECT * FROM products";
     const products = await executeQuery(query);
-    console.log(`🪵 → products:`, products);
     return products;
   } catch (error) {
     console.error("Error in dbutility --> getProducts:", error);
@@ -196,16 +197,16 @@ const addOrderProducts = async (orderId, products) => {
     const availableProducts = await getProductss();
 
     const orderProductQueries = products.map((product) => {
-      const { product_id, quantity } = product;
-      const productData = availableProducts.find((p) => p.id === product_id);
+      const { id, quantity } = product;
+      const productData = availableProducts.find((p) => p.id === id);
 
       if (!productData) {
         throw new Error(
-          `Product with ID ${product_id} not found in available products.`
+          `Product with ID ${id} not found in available products.`
         );
       }
 
-      const price = productData.price;
+      const price = productData.discountPrice;
 
       return {
         query: `
@@ -214,7 +215,7 @@ const addOrderProducts = async (orderId, products) => {
         `,
         values: [
           orderId,
-          product_id,
+          id,
           quantity,
           price,
           productData.name,
@@ -540,6 +541,45 @@ const orderHistory = async (customerId, params) => {
   }
 };
 
+const checkExistingOrder = async (customerId, orderDate, orderType) => {
+  try {
+    // Get the start and end of the day in UTC epoch time
+    const startOfDay = new Date(orderDate);
+    console.log(`🪵 → startOfDay:`, startOfDay)
+    startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00)
+    const startEpoch = Math.floor(startOfDay.getTime() / 1000); // Convert to epoch seconds
+
+    const endOfDay = new Date(orderDate);
+    console.log(`🪵 → endOfDay:`, endOfDay)
+    endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59)
+    const endEpoch = Math.floor(endOfDay.getTime() / 1000); // Convert to epoch seconds
+
+    // Query to check if an order exists for the given customerId, date range, and orderType
+    const query = `
+      SELECT id
+      FROM orders
+      WHERE customer_id = ?
+        AND placed_on >= ?
+        AND placed_on <= ?
+        AND order_type = ?
+      LIMIT 1
+    `;
+
+    // Execute the query with the appropriate parameters
+    const result = await executeQuery(query, [
+      customerId,
+      startEpoch,
+      endEpoch,
+      orderType,
+    ]);
+    // If an order is found, return true (i.e., order already exists)
+    return result.length > 0;
+  } catch (error) {
+    console.error("Error in checkExistingOrder:", error);
+    throw new Error("Failed to check existing order.");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -563,4 +603,5 @@ module.exports = {
   updateUser,
   getProductss,
   orderHistory,
+  checkExistingOrder,
 };

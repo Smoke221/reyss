@@ -9,18 +9,20 @@ const {
   addOrderProducts,
   createTransactionForCOD,
   getProductss,
+  checkExistingOrder,
 } = require("./dbUtility");
 const { executeQuery } = require("../dbUtils/db");
 
 const placeOrderService = async (
   customerId,
-  { products, orderType, totalAmount }
+  { products, orderType, totalAmount, orderDate }
 ) => {
   try {
-    // Step 1: Create the order entry
-    const placedOn = Math.floor(Date.now() / 1000); // Current epoch time
-    const createdAt = placedOn;
-    const updatedAt = placedOn;
+    // Create the order entry
+    const placedOn = orderDate;
+    const currentEpoch = Math.floor(Date.now() / 1000);
+    const createdAt = currentEpoch;
+    const updatedAt = currentEpoch;
 
     const orderId = await createOrder(
       customerId,
@@ -31,12 +33,13 @@ const placeOrderService = async (
       updatedAt
     );
 
-    // Step 2: Add products to the order
+    // Add products to the order
     await addOrderProducts(orderId, products);
 
-    await createTransactionForCOD(orderId, customerId ,totalAmount);
+    // Create a transaction for COD orders
+    await createTransactionForCOD(orderId, customerId, totalAmount);
 
-    // Step 3: Return the result (Order placed successfully)
+    // Return the result (Order placed successfully)
     return {
       statusCode: 200,
       response: {
@@ -47,6 +50,7 @@ const placeOrderService = async (
           customerId,
           orderType,
           totalAmount,
+          placedOn,
           products,
         },
       },
@@ -57,9 +61,14 @@ const placeOrderService = async (
   }
 };
 
-// Function to check order validity
-const checkOrderService = async (customerId, orderType, products) => {
+const checkOrderService = async (
+  customerId,
+  orderType,
+  products,
+  orderDate
+) => {
   try {
+    // Check if the user exists
     const isUser = await isUserExists(customerId);
     if (!isUser) {
       return {
@@ -71,32 +80,57 @@ const checkOrderService = async (customerId, orderType, products) => {
       };
     }
 
+    // Check if an order for the same type and date already exists for this customer
+    const existingOrder = await checkExistingOrder(
+      customerId,
+      orderDate,
+      orderType
+    );
+    if (existingOrder) {
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: `Order already exists for ${orderType} on this date.`,
+        },
+      };
+    }
+
+    // Validate products and calculate total amount
     let totalAmount = 0;
     const invalidProducts = [];
-    let dbProducts = await getProductss();
+    const dbProducts = await getProductss();
 
     for (const product of products) {
-      const { product_id, quantity } = product;
-      const productData = dbProducts.find((p) => p.id === product_id);
+      const { id, quantity } = product;
+      const productData = dbProducts.find((p) => p.id === id);
 
       if (!productData) {
-        invalidProducts.push(product_id);
+        invalidProducts.push(id);
         continue;
       }
 
       const parsedQuantity = parseInt(quantity, 10);
       if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
-        invalidProducts.push(product_id);
+        invalidProducts.push(id);
         continue;
       }
 
       totalAmount += productData.price * parsedQuantity;
     }
 
+    // If there are any invalid products, return an error
     if (invalidProducts.length > 0) {
-      throw new Error(`Invalid products found: ${invalidProducts.join(", ")}`);
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: `Invalid products found: ${invalidProducts.join(", ")}`,
+        },
+      };
     }
 
+    // Return valid order data
     return {
       statusCode: 200,
       response: {
@@ -107,7 +141,13 @@ const checkOrderService = async (customerId, orderType, products) => {
     };
   } catch (error) {
     console.error("Error in checkOrderService:", error);
-    throw new Error(error.message);
+    return {
+      statusCode: 500,
+      response: {
+        status: false,
+        message: "Internal server error.",
+      },
+    };
   }
 };
 
