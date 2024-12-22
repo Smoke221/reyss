@@ -6,6 +6,8 @@ const {
   getAllUsers,
   addProduct,
   updateUser,
+  updateProduct,
+  getProductById,
 } = require("./dbUtility");
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
@@ -155,5 +157,33 @@ exports.updateUserService = async (customer_id, data) => {
   } catch (error) {
     console.error("Error in updateUser:", error.message);
     throw new Error("Failed to update users.");
+  }
+};
+
+exports.updateProductService = async (id, updatedProductData) => {
+  try {
+    const isProductExists = await getProductById(id);
+
+    if (!isProductExists || !isProductExists.length) {
+      throw new Error("Product not found");
+    }
+
+    const updatedProduct = await updateProduct(id, updatedProductData);
+
+    if (!updatedProduct) {
+      throw new Error("Product not found or update failed");
+    }
+
+    return {
+      statusCode: 201,
+      response: {
+        status: true,
+        message: "Updated Product",
+        data: updateProduct,
+      },
+    };
+  } catch (error) {
+    console.error("Error in productService updateProduct:", error);
+    throw error;
   }
 };

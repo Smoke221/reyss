@@ -136,7 +136,7 @@ const getOrder = async (customerId, orderId) => {
 
 const getProductById = async (productId) => {
   try {
-    const query = "SELECT * FROM products WHERE product_id = ?";
+    const query = "SELECT * FROM products WHERE id = ?";
     const product = await executeQuery(query, [productId]);
     return product;
   } catch (error) {
@@ -587,6 +587,54 @@ const checkExistingOrder = async (customerId, orderDate, orderType) => {
   }
 };
 
+const updateProduct = async (
+  id,
+  { name, brand, category, price, discountPrice, uom }
+) => {
+  try {
+    const updated_at = Math.floor(Date.now() / 1000);
+
+    const query = `
+      UPDATE products 
+      SET name = ?, brand = ?, category = ?, price = ?, discountPrice = ?, uom = ?, updated_at = ?
+      WHERE id = ?
+    `;
+
+    const values = [
+      name,
+      brand,
+      category,
+      price,
+      discountPrice,
+      uom,
+      updated_at,
+      id,
+    ];
+
+    const result = await executeQuery(query, values);
+
+    // Check if any rows were updated
+    if (result.affectedRows === 0) {
+      return null; // No product was updated
+    }
+
+    // Return the updated product details
+    return {
+      id,
+      name,
+      brand,
+      category,
+      price,
+      discountPrice,
+      uom,
+      updated_at,
+    };
+  } catch (error) {
+    console.error("Error in productDbUtility updateProduct:", error);
+    throw new Error("Database update failed");
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -611,4 +659,5 @@ module.exports = {
   getProductss,
   orderHistory,
   checkExistingOrder,
+  updateProduct
 };

@@ -180,3 +180,37 @@ exports.updateUserController = async (req, res) => {
     res.status(500).json({ status: false, message: "Failed to update user." });
   }
 };
+
+exports.updateProductController = async (req, res) => {
+  try {
+    const { id } = req.query; // Get product ID from URL params
+    const { name, brand, category, price, discountPrice, uom } = req.body;
+
+    // Validate required fields
+    if (!id || !name || !category || !price) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Set the default value for uom to 'pkts' if not provided
+    const updatedProductData = {
+      name,
+      brand,
+      category,
+      price,
+      discountPrice: discountPrice || null,
+      uom: uom || "pkts",
+    };
+
+    // Call the service to update the product
+    const updatedProduct = await adminService.updateProductService(
+      id,
+      updatedProductData
+    );
+
+    // Respond with the updated product details
+    res.status(updatedProduct.statusCode).json(updatedProduct.response);
+  } catch (error) {
+    console.error("Error in updateProduct controller:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

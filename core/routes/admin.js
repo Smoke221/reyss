@@ -7,6 +7,7 @@ const {
   addProductController,
   exportToExcelController,
   updateUserController,
+  updateProductController,
 } = require("../controllers/adminController");
 const { authenticate, authorizeAdmin } = require("../middleware/authenticate");
 
@@ -42,7 +43,14 @@ adminRouter.post(
   addProductController
 );
 
-adminRouter.post("/update", authenticate, authorizeAdmin, updateUserController)
+adminRouter.post("/update", authenticate, authorizeAdmin, updateUserController);
+
+adminRouter.post(
+  "/editProd",
+  authenticate,
+  authorizeAdmin,
+  updateProductController
+);
 
 adminRouter.post("/export", exportToExcelController);
 
