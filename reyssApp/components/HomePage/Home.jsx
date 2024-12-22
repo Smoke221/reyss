@@ -18,7 +18,7 @@ const formatDate = (epochTime) => {
 };
 
 const HomePage = () => {
-  const amountPending = "₹ 7000";
+  const amountPending = `₹ 7000`;
   const [isLoading, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [lastOrderDetails, setLastOrderDetails] = useState(null);
@@ -68,6 +68,7 @@ const HomePage = () => {
         customerName: userGetResponse.user.name,
         customerID: userGetResponse.user.customer_id,
         route: userGetResponse.user.route,
+        pendingAmount: userGetResponse.pendingAmount
       };
 
       await AsyncStorage.setItem(
@@ -81,6 +82,8 @@ const HomePage = () => {
       const orderType = latestOrder?.order_type || "";
       const quantity = latestOrder?.quantity || 0;
 
+      const pendingAmount = userGetResponse.pendingAmount;
+
       return {
         userDetails,
         latestOrder: {
@@ -89,6 +92,7 @@ const HomePage = () => {
           orderType,
           quantity,
         },
+        pendingAmount,
       };
     } catch (err) {
       console.error("User details fetch error:", err);
@@ -98,7 +102,7 @@ const HomePage = () => {
   };
 
   // Destructure userDetails and lastOrderDetails or use empty object to prevent errors
-  const { customerName, customerID, route } = userDetails || {};
+  const { customerName, customerID, route, pendingAmount } = userDetails || {};
   const { lastIndentDate, totalAmount, orderType, quantity } =
     lastOrderDetails || {};
 
@@ -137,13 +141,13 @@ const HomePage = () => {
       <View
         style={[
           styles.card,
-          parseInt(amountPending.replace(/[^0-9]/g, ""), 10) > 5000 &&
+          parseInt(pendingAmount) > 5000 &&
             styles.highAmountCard,
           styles.borderRadiusCard,
         ]}
       >
         <View style={styles.cardContent}>
-          <Text style={styles.cardText}>Amount Pending: {amountPending}</Text>
+          <Text style={styles.cardText}>Amount Pending:  ₹{pendingAmount || "0"}</Text>
           <TouchableOpacity style={styles.payButton}>
             <Text style={styles.payButtonText}>PAY</Text>
           </TouchableOpacity>

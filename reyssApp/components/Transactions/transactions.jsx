@@ -51,21 +51,6 @@ const TransactionsPage = () => {
       setTransactions(orders);
       setTotalOrderAmount(total_order_amount);
       setTotalAmountPaid(total_amount_paid);
-
-      // // Calculate pending amount
-      // const pendingAmount = total_order_amount - total_amount_paid;
-
-      // // Check if the pending amount for this month/year is already stored
-      // const storedPendingAmount = await AsyncStorage.getItem(
-      //   `pendingAmount-${year}-${month}`
-      // );
-      // if (!storedPendingAmount) {
-      //   // Store the pending amount if not already stored for this month
-      //   await AsyncStorage.setItem(
-      //     `pendingAmount-${year}-${month}`,
-      //     JSON.stringify(pendingAmount)
-      //   );
-      // }
     } catch (error) {
       console.error("Error fetching transactions:", error);
       Alert.alert("Error", "Failed to fetch transactions. Please try again.");
@@ -102,8 +87,9 @@ const TransactionsPage = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Indent</Text>
+      {/* Page Header with Refresh Button */}
+      <View style={styles.pageHeader}>
+        <Text style={styles.headerText}>Transactions</Text>
         <RefreshButton onRefresh={handleRefresh} />
       </View>
 
@@ -152,8 +138,8 @@ const TransactionsPage = () => {
         </Text>
       </View>
 
-      {/* Header for transactions */}
-      <View style={styles.header}>
+      {/* Transactions Header */}
+      <View style={styles.transactionsHeader}>
         <Text style={styles.headerText}>Date</Text>
         <Text style={styles.headerText}>Invoice</Text>
         <Text style={styles.headerText}>Paid</Text>
@@ -190,7 +176,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0f0f0",
   },
-  header: {
+  pageHeader: {
     backgroundColor: "#ffcc00",
     paddingHorizontal: 20,
     paddingTop: 30,
@@ -225,18 +211,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  header: {
+  transactionsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "#ffcc00",
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginBottom: 10,
-  },
-  headerText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "center",
   },
   transactionItem: {
     flexDirection: "row",

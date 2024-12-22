@@ -121,10 +121,7 @@ const PlaceOrderPage = ({ route }) => {
       );
 
       if (isDuplicate) {
-        Alert.alert(
-          "Item Exists",
-          "Please increase the quantity."
-        );
+        Alert.alert("Item Exists", "Please increase the quantity.");
         return;
       }
 
@@ -235,7 +232,7 @@ const PlaceOrderPage = ({ route }) => {
         Alert.alert("Error", "Authorization token is missing.");
         return;
       }
-      const orderDate = new Date().toISOString();
+      const orderDate = new Date(selectedDate).toISOString();
 
       const options = {
         method: "POST",
@@ -292,10 +289,10 @@ const PlaceOrderPage = ({ route }) => {
 
       // Transform the data
       const transformedData = data.map((item) => ({
-        id: item.product_id,
+        product_id: item.product_id,
         quantity: item.quantity,
       }));
-      const orderDate = new Date().toISOString();
+      const orderDate = new Date(selectedDate).toISOString();
 
       const options = {
         method: "POST",
