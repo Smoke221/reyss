@@ -341,12 +341,18 @@ const getAllOrders = async (params) => {
 
     const offset = (page - 1) * limit;
 
-    // Base query for orders, joining with users for customer details and order_products for product details
-    let query = `SELECT o.*, u.name AS customer_name, op.category, op.name AS product_name
-                 FROM orders o
-                 JOIN users u ON o.customer_id = u.customer_id
-                 JOIN order_products op ON o.id = op.order_id
-                 WHERE 1=1 `;
+    // Base query for orders, joining with users for customer details
+    // Use GROUP_CONCAT to aggregate product details and SUM to calculate total amount from order_products
+    let query = `
+      SELECT o.id, o.placed_on, o.status, o.total_amount AS total_amount, 
+             u.name AS customer_name,
+             GROUP_CONCAT(op.category SEPARATOR ', ') AS categories,
+             GROUP_CONCAT(op.name SEPARATOR ', ') AS product_names,
+             SUM(op.price * op.quantity) AS amount
+      FROM orders o
+      JOIN users u ON o.customer_id = u.customer_id
+      JOIN order_products op ON o.id = op.order_id
+      WHERE 1=1 `;
 
     const values = [];
 
@@ -376,15 +382,16 @@ const getAllOrders = async (params) => {
       values.push(startDate, endDate);
     }
 
-    // Dynamically add sorting
-    query += ` ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
+    // Group by order id and dynamically add sorting and pagination
+    query += ` GROUP BY o.id ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
     values.push(limit, offset);
 
     // Execute the query
     const orders = await executeQuery(query, values);
+    console.log(`🪵 → orders:`, orders);
 
     // Count query for total orders (without any filters)
-    let countQuery = `SELECT COUNT(*) AS count
+    let countQuery = `SELECT COUNT(DISTINCT o.id) AS count
                       FROM orders o
                       JOIN order_products op ON o.id = op.order_id
                       JOIN users u ON o.customer_id = u.customer_id
@@ -545,12 +552,12 @@ const checkExistingOrder = async (customerId, orderDate, orderType) => {
   try {
     // Get the start and end of the day in UTC epoch time
     const startOfDay = new Date(orderDate);
-    console.log(`🪵 → startOfDay:`, startOfDay)
+    console.log(`🪵 → startOfDay:`, startOfDay);
     startOfDay.setHours(0, 0, 0, 0); // Start of the day (00:00:00)
     const startEpoch = Math.floor(startOfDay.getTime() / 1000); // Convert to epoch seconds
 
     const endOfDay = new Date(orderDate);
-    console.log(`🪵 → endOfDay:`, endOfDay)
+    console.log(`🪵 → endOfDay:`, endOfDay);
     endOfDay.setHours(23, 59, 59, 999); // End of the day (23:59:59)
     const endEpoch = Math.floor(endOfDay.getTime() / 1000); // Convert to epoch seconds
 
