@@ -58,6 +58,7 @@ const userDetailsController = async (req, res) => {
       user: result.user,
       latestOrder: result.latestOrder,
       defaultOrder: result.defaultOrder,
+      pendingAmount: result.pendingAmount
     });
   } catch (err) {
     console.error("Error fetching user details:", err.message);

@@ -102,17 +102,18 @@ const checkOrderService = async (
     const dbProducts = await getProductss();
 
     for (const product of products) {
-      const { id, quantity } = product;
-      const productData = dbProducts.find((p) => p.id === id);
+      console.log(`🪵 → product:`, product)
+      const { product_id, quantity } = product;
+      const productData = dbProducts.find((p) => p.id === product_id);
 
       if (!productData) {
-        invalidProducts.push(id);
+        invalidProducts.push(product_id);
         continue;
       }
 
       const parsedQuantity = parseInt(quantity, 10);
       if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
-        invalidProducts.push(id);
+        invalidProducts.push(product_id);
         continue;
       }
 
@@ -182,9 +183,10 @@ const orderHistoryService = async (customerId) => {
         }
 
         result[orderDateTimestamp][orderType].quantity += order.quantity;
-        result[orderDateTimestamp][orderType].totalAmount += order.totalAmount;
+        result[orderDateTimestamp][orderType].totalAmount = order.totalAmount;
       });
 
+      console.log(`🪵 → result:`, result)
       return result;
     };
 

@@ -197,12 +197,12 @@ const addOrderProducts = async (orderId, products) => {
     const availableProducts = await getProductss();
 
     const orderProductQueries = products.map((product) => {
-      const { id, quantity } = product;
-      const productData = availableProducts.find((p) => p.id === id);
+      const { product_id, quantity } = product;
+      const productData = availableProducts.find((p) => p.id === product_id);
 
       if (!productData) {
         throw new Error(
-          `Product with ID ${id} not found in available products.`
+          `Product with ID ${product_id} not found in available products.`
         );
       }
 
@@ -215,7 +215,7 @@ const addOrderProducts = async (orderId, products) => {
         `,
         values: [
           orderId,
-          id,
+          product_id,
           quantity,
           price,
           productData.name,

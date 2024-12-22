@@ -6,8 +6,10 @@ const {
   changePassword,
   updateUser,
   orderHistory,
+  getMonthlyTotals,
 } = require("./dbUtility");
 const { getProductsWithDetails } = require("../helpers/productDetailsMap");
+const { getTransactionsForMonth } = require("./transactionService");
 
 const loginUser = async (username, password) => {
   try {
@@ -19,6 +21,16 @@ const loginUser = async (username, password) => {
         response: {
           status: false,
           message: "User not found.",
+        },
+      };
+    }
+
+    if (user && user.status !== "Active") {
+      return {
+        statusCode: 400,
+        response: {
+          status: false,
+          message: "User is blocked, contact admin.",
         },
       };
     }
@@ -67,10 +79,14 @@ const getUserDetailsByCustomerId = async (customerId) => {
       ? await getProductsWithDetails(defaultOrder)
       : null;
     // const detailedLatestOrder = await getProductsWithDetails(latestOrder);
+    const transactions = await getMonthlyTotals(customerId, 12, 2024);
+    const pendingAmount =
+      transactions.total_order_amount - transactions.total_amount_paid || 0;
     return {
       user,
       defaultOrder: detailedDefaultOrder,
       latestOrder,
+      pendingAmount,
     };
   } catch (err) {
     throw new Error(err.message || "Internal Server Error");
