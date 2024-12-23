@@ -18,10 +18,19 @@ const OrderProductsList = ({ products, isEditable, onQuantityChange }) => {
     const loadModifiedOrder = async () => {
       try {
         if (isEditable) {
+          // Check if modified order already exists in AsyncStorage
           const storedOrder = await AsyncStorage.getItem("modifiedOrder");
           if (storedOrder) {
+            // If exists, use the saved modified order
             const parsedOrder = JSON.parse(storedOrder);
             setModifiedOrder(parsedOrder);
+          } else {
+            // If not, initialize it with default products and save it in AsyncStorage
+            await AsyncStorage.setItem(
+              "modifiedOrder",
+              JSON.stringify(products)
+            );
+            setModifiedOrder(products); // Set modified order with default products
           }
         } else {
           // When not editable, clear modified order to show default products

@@ -108,9 +108,13 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
         styles.categoryButton,
         selectedCategory === category && styles.selectedCategoryButton,
       ]}
-      onPress={() =>
-        setSelectedCategory(selectedCategory === category ? "" : category)
-      }
+      onPress={() => {
+        if (searchQuery) {
+          setSearchQuery("");
+        }
+        //remove the condition if you need the search params even if the category is selected.
+        setSelectedCategory(selectedCategory === category ? "" : category);
+      }}
     >
       <Text
         style={[
