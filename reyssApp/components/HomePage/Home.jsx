@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ScrollView,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ipAddress } from "../../urls";
+import { useNavigation } from "@react-navigation/native";
 
 // Helper function to format epoch time
 const formatDate = (epochTime) => {
@@ -22,6 +24,7 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
   const [lastOrderDetails, setLastOrderDetails] = useState(null);
+  const navigation = useNavigation();
 
   // Fetch data on component mount
   useEffect(() => {
@@ -68,7 +71,7 @@ const HomePage = () => {
         customerName: userGetResponse.user.name,
         customerID: userGetResponse.user.customer_id,
         route: userGetResponse.user.route,
-        pendingAmount: userGetResponse.pendingAmount
+        pendingAmount: userGetResponse.pendingAmount,
       };
 
       await AsyncStorage.setItem(
@@ -107,7 +110,7 @@ const HomePage = () => {
     lastOrderDetails || {};
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {/* Header section with logo */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Home</Text>
@@ -141,13 +144,14 @@ const HomePage = () => {
       <View
         style={[
           styles.card,
-          parseInt(pendingAmount) > 5000 &&
-            styles.highAmountCard,
+          parseInt(pendingAmount) > 5000 && styles.highAmountCard,
           styles.borderRadiusCard,
         ]}
       >
         <View style={styles.cardContent}>
-          <Text style={styles.cardText}>Amount Pending:  ₹{pendingAmount || "0"}</Text>
+          <Text style={styles.cardText}>
+            Amount Pending: ₹{pendingAmount || "0"}
+          </Text>
           <TouchableOpacity style={styles.payButton}>
             <Text style={styles.payButtonText}>PAY</Text>
           </TouchableOpacity>
@@ -185,7 +189,21 @@ const HomePage = () => {
           )}
         </View>
       </View>
-    </View>
+
+      <View style={styles.productsCard}>
+        <TouchableOpacity
+          style={styles.cardContent}
+          onPress={() => navigation.navigate("ProductsList")}
+        >
+          <Text style={styles.cardText}>View All Products</Text>
+          <MaterialIcons
+            name="keyboard-arrow-right"
+            size={24}
+            color="#ffcc00"
+          />
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -210,7 +228,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
+    padding: 15,
     margin: 10,
     marginTop: 100,
     borderRadius: 15,
@@ -233,7 +251,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#fff",
-    padding: 20,
+    padding: 15,
     margin: 10,
     borderRadius: 15,
     elevation: 3,
@@ -268,8 +286,8 @@ const styles = StyleSheet.create({
   },
   payButton: {
     backgroundColor: "#ffcc00",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 8, // Reduced padding
+    paddingHorizontal: 18, // Reduced padding
     borderRadius: 50,
   },
   payButtonText: {
@@ -295,7 +313,7 @@ const styles = StyleSheet.create({
   },
   lastIndentCard: {
     backgroundColor: "#fff",
-    padding: 20,
+    padding: 15, // Reduced padding
     margin: 10,
     borderRadius: 15,
     elevation: 3,
@@ -305,8 +323,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#999",
     textAlign: "center",
-    // marginTop: 20,
     fontWeight: "bold",
+  },
+  productsCard: {
+    backgroundColor: "#fff",
+    padding: 15, // Reduced padding
+    margin: 10,
+    borderRadius: 15,
+    elevation: 3,
+  },
+  cardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  cardText: {
+    fontSize: 16,
+    color: "#333",
   },
 });
 

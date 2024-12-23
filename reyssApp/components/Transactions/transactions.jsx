@@ -140,9 +140,9 @@ const TransactionsPage = () => {
 
       {/* Transactions Header */}
       <View style={styles.transactionsHeader}>
-        <Text style={styles.headerText}>Date</Text>
-        <Text style={styles.headerText}>Invoice</Text>
-        <Text style={styles.headerText}>Paid</Text>
+        <Text style={styles.TheaderText}>Date</Text>
+        <Text style={styles.TheaderText}>Invoice</Text>
+        <Text style={styles.TheaderText}>Paid</Text>
       </View>
 
       {/* Transactions */}
@@ -190,6 +190,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
+  TheaderText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   navigation: {
     flexDirection: "row",
     justifyContent: "center",
@@ -223,13 +227,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "#fff",
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     marginVertical: 2,
     borderRadius: 5,
     elevation: 2,
   },
   amountText: {
-    width: 90,
     textAlign: "center",
   },
   messageText: {
