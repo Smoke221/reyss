@@ -87,9 +87,38 @@ const ProductsComponent = () => {
       <Text style={styles.productName}>{item.name}</Text>
       <Text style={styles.productDetails}>Category: {item.category}</Text>
       <Text style={styles.productDetails}>Brand: {item.brand}</Text>
-      <Text style={styles.productDetails}>Price: ₹{item.price}</Text>
+      <View style={styles.priceContainer}>
+        <Text style={styles.productPrice}>₹{item.price}</Text>
+      </View>
     </View>
   );
+
+  // Group products into pairs of two for each row
+  const renderProductsRow = ({ item }) => (
+    <View style={styles.productRow}>
+      {item.map((product, index) => (
+        <View style={styles.productCardWrapper} key={index}>
+          {product ? (
+            renderProduct({ item: product })
+          ) : (
+            <View style={styles.emptyProductCard} />
+          )}
+        </View>
+      ))}
+    </View>
+  );
+
+  const groupProductsInRows = (productsArray) => {
+    const rows = [];
+    for (let i = 0; i < productsArray.length; i += 2) {
+      const row = productsArray.slice(i, i + 2);
+      if (row.length === 1) {
+        row.push(null);
+      }
+      rows.push(row);
+    }
+    return rows;
+  };
 
   return (
     <View style={styles.container}>
@@ -98,6 +127,7 @@ const ProductsComponent = () => {
           <Icon name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
       </View>
+
       {/* Search input */}
       <TextInput
         style={styles.searchInput}
@@ -159,9 +189,9 @@ const ProductsComponent = () => {
       {/* Products List */}
       {filteredProducts.length > 0 ? (
         <FlatList
-          data={filteredProducts}
-          renderItem={renderProduct}
-          keyExtractor={(item) => item.id.toString()}
+          data={groupProductsInRows(filteredProducts)}
+          renderItem={renderProductsRow}
+          keyExtractor={(item, index) => index.toString()}
           style={styles.productsList}
         />
       ) : (
@@ -236,11 +266,20 @@ const styles = StyleSheet.create({
   productsList: {
     flexGrow: 1,
   },
+  productRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  productCardWrapper: {
+    flex: 1,
+    marginRight: 8,
+  },
   productCard: {
     backgroundColor: "#fff",
     padding: 16,
-    marginBottom: 5,
     borderRadius: 8,
+    flex: 1,
   },
   productName: {
     fontSize: 14,
@@ -250,10 +289,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
+  priceContainer: {
+    marginTop: 8,
+    backgroundColor: "#ffcc00",
+    padding: 5,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+  },
+  productPrice: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#fff",
+  },
   noProductsText: {
     textAlign: "center",
     fontSize: 18,
     color: "#999",
+  },
+  emptyProductCard: {
+    flex: 1, // Ensures it takes up space but remains invisible
   },
 });
 

@@ -8,7 +8,6 @@ const CalendarComponent = ({
   handleDatePress,
   dayOrderQuantity,
 }) => {
-  
   return (
     <Calendar
       onDayPress={handleDatePress}
