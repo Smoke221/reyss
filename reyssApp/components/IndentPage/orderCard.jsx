@@ -4,7 +4,6 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import moment from "moment";
 
 const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => {
-
   const isPastDate = moment(selectedDate, "YYYY-MM-DD").isBefore(
     moment(),
     "day"
@@ -15,32 +14,34 @@ const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => {
 
   return (
     <View style={styles.orderCard}>
-      <View style={styles.orderContent}>
-        <Text style={styles.orderType}>{shift}</Text>
-        <Text style={styles.orderText}>
-          {selectedDate.split("-").reverse().join("-")}
-        </Text>
-        {order ? (
-          <>
-            <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
-            <Text style={styles.orderText}>
-              Total Amount: ₹{order.totalAmount}
-            </Text>
-          </>
-        ) : (
-          <Text style={styles.naText}>No Indent</Text>
+      <View style={styles.orderContentWrapper}>
+        <View style={styles.orderContent}>
+          <Text style={styles.orderType}>{shift}</Text>
+          <Text style={styles.orderText}>
+            {selectedDate.split("-").reverse().join("-")}
+          </Text>
+          {order ? (
+            <>
+              <Text style={styles.orderText}>Quantity: {order.quantity}</Text>
+              <Text style={styles.orderText}>
+                Total Amount: ₹{order.totalAmount}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.naText}>No Indent</Text>
+          )}
+        </View>
+
+        {/* Conditionally render the arrow button */}
+        {showArrowButton && (
+          <TouchableOpacity
+            style={styles.arrowButton}
+            onPress={() => onOrderClick(order, shift, selectedDate)}
+          >
+            <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
+          </TouchableOpacity>
         )}
       </View>
-
-      {/* Conditionally render the arrow button */}
-      {showArrowButton && (
-        <TouchableOpacity
-          style={styles.arrowButton}
-          onPress={() => onOrderClick(order, shift, selectedDate)}
-        >
-          <MaterialIcons name="arrow-forward" size={30} color="#ffcc00" />
-        </TouchableOpacity>
-      )}
     </View>
   );
 };
@@ -50,7 +51,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
-    marginVertical: 8,
+    marginVertical: 5,
+  },
+  orderContentWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  orderContent: {
+    flex: 1,
   },
   orderType: {
     fontSize: 24,
@@ -66,9 +75,8 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   arrowButton: {
-    position: "absolute",
-    right: 10,
-    top: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
+  BackHandler,
   View,
   Text,
   StyleSheet,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ipAddress } from "../../urls";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 // Helper function to format epoch time
 const formatDate = (epochTime) => {
@@ -25,6 +26,39 @@ const HomePage = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [lastOrderDetails, setLastOrderDetails] = useState(null);
   const navigation = useNavigation();
+
+  // Back button handler function
+  const handleBackButton = () => {
+    Alert.alert(
+      "Exit App",
+      "Do you want to exit?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "Exit",
+          onPress: () => BackHandler.exitApp(), // Exit the app if "Exit" is pressed
+        },
+      ],
+      { cancelable: false }
+    );
+    return true; // This prevents the default back button behavior
+  };
+
+  // UseFocusEffect to handle back button only when HomePage is in focus
+  useFocusEffect(
+    React.useCallback(() => {
+      BackHandler.addEventListener("hardwareBackPress", handleBackButton);
+
+      return () => {
+        // Cleanup listener on component unmount
+        BackHandler.removeEventListener("hardwareBackPress", handleBackButton);
+      };
+    }, [])
+  );
 
   // Fetch data on component mount
   useEffect(() => {
