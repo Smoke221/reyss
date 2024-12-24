@@ -13,6 +13,8 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { ipAddress } from "../../../urls";
+import { checkTokenAndRedirect } from "../../../services/auth";
+import { useNavigation } from "@react-navigation/native";
 
 const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +24,8 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
   const [selectedCategory, setSelectedCategory] = useState(""); // Store selected category
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     // Fetch all products when modal is visible
@@ -38,7 +42,7 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation)
 
       const response = await axios.get(`http://${ipAddress}:8090/products`, {
         headers: {

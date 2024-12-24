@@ -14,6 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Import MaterialIcons
 import LoadingIndicator from "../general/Loader";
 import RefreshButton from "../general/RefreshButton";
+import { checkTokenAndRedirect } from "../../services/auth";
+import { useNavigation } from "@react-navigation/native";
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -25,10 +27,12 @@ const TransactionsPage = () => {
   const [totalOrderAmount, setTotalOrderAmount] = useState(0);
   const [totalAmountPaid, setTotalAmountPaid] = useState(0);
 
+  const navigation = useNavigation();
+
   const fetchTransactions = async (month, year) => {
     setLoading(true);
     try {
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation);
       if (!userAuthToken) {
         Alert.alert("Error", "Authorization token is missing.");
         return;
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginVertical: 2,
     borderRadius: 5,
-    elevation: 2,
+    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.12)",
   },
   amountText: {
     textAlign: "center",

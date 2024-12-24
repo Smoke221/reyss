@@ -19,9 +19,8 @@ const ProductsComponent = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
   const navigation = useNavigation();
-
-  const categories = ["Milk", "Curd", "Yogurt"];
 
   useEffect(() => {
     fetchProducts();
@@ -35,6 +34,7 @@ const ProductsComponent = () => {
         setProducts(data);
         setFilteredProducts(data);
         setBrands([...new Set(data.map((product) => product.brand))]);
+        setCategories([...new Set(data.map((product) => product.category))]);
       } else {
         Alert.alert("Error", "Failed to fetch products");
       }

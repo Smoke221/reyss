@@ -13,6 +13,7 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { ipAddress } from "../../urls";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { checkTokenAndRedirect } from "../../services/auth";
 
 // Helper function to format epoch time
 const formatDate = (epochTime) => {
@@ -82,7 +83,7 @@ const HomePage = () => {
   // Fetch user details and last order details from API
   const userDetailsData1 = async () => {
     try {
-      const token = await AsyncStorage.getItem("userAuthToken");
+      const token = await checkTokenAndRedirect(navigation);
       const response = await fetch(`http://${ipAddress}:8090/userDetails`, {
         method: "GET",
         headers: {
@@ -266,12 +267,11 @@ const styles = StyleSheet.create({
     margin: 10,
     marginTop: 100,
     borderRadius: 15,
-    elevation: 3,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.16)",
   },
   logo: {
     width: 60,
     height: 60,
-    resizeMode: "contain",
   },
   logoText: {
     flex: 1,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     padding: 15,
     margin: 10,
     borderRadius: 15,
-    elevation: 3,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.16)",
   },
   cardContent: {
     flexDirection: "row",
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     padding: 15, // Reduced padding
     margin: 10,
     borderRadius: 15,
-    elevation: 3,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.16)",
     borderColor: "#f0f0f0",
   },
   noOrdersText: {
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     padding: 15, // Reduced padding
     margin: 10,
     borderRadius: 15,
-    elevation: 3,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.16)",
   },
   cardContent: {
     flexDirection: "row",

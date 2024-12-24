@@ -12,12 +12,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import axios from "axios";
 import { ipAddress } from "../../urls";
+import { checkTokenAndRedirect } from "../../services/auth";
+import { useNavigation } from "@react-navigation/native";
 
 const PasswordChangeModal = ({ isVisible, onClose }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const navigation = useNavigation();
 
   const handlePasswordChange = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
@@ -33,7 +37,7 @@ const PasswordChangeModal = ({ isVisible, onClose }) => {
     try {
       setLoading(true);
 
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation);
       if (!userAuthToken) {
         Alert.alert("Error", "User authentication token is missing.");
         return;

@@ -14,6 +14,7 @@ import ErrorMessage from "../general/errorMessage";
 import OrderModal from "../general/orderModal";
 import SearchProductModal from "./nestedPage/searchProductModal";
 import { ipAddress } from "../../urls";
+import { checkTokenAndRedirect } from "../../services/auth";
 
 const PlaceOrderPage = ({ route }) => {
   const { order, selectedDate, shift } = route.params;
@@ -56,7 +57,7 @@ const PlaceOrderPage = ({ route }) => {
 
   const fetchOrderDetails = async (orderId) => {
     try {
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation);
       if (!userAuthToken) {
         setError("Authorization token is missing");
         setLoading(false);
@@ -227,7 +228,7 @@ const PlaceOrderPage = ({ route }) => {
 
   const handleSubmit = async () => {
     try {
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation);
       if (!userAuthToken) {
         Alert.alert("Error", "Authorization token is missing.");
         return;
@@ -278,7 +279,7 @@ const PlaceOrderPage = ({ route }) => {
 
   const handleSubmitEdit = async () => {
     try {
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation);
       if (!userAuthToken) {
         Alert.alert("Error", "Authorization token is missing.");
         return;

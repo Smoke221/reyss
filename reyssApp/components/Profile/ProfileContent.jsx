@@ -10,6 +10,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { ipAddress } from "../../urls";
 import LoadingIndicator from "../general/Loader";
+import { checkTokenAndRedirect } from "../../services/auth";
+import { useNavigation } from "@react-navigation/native";
 
 const ProfileContent = () => {
   const [loading, setLoading] = useState(true);
@@ -17,10 +19,12 @@ const ProfileContent = () => {
   const [defaultOrder, setDefaultOrder] = useState(null);
   const [error, setError] = useState(null);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const token = await AsyncStorage.getItem("userAuthToken");
+        const token = await checkTokenAndRedirect(navigation);
         if (!token) throw new Error("No authorization token found.");
 
         const response = await axios.get(
@@ -120,7 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingVertical: 20,
     backgroundColor: "#fff",
-    elevation: 2,
+    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.12)",
   },
   header: {
     fontSize: 22,

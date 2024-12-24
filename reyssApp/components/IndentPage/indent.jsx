@@ -7,6 +7,7 @@ import { ipAddress } from "../../urls";
 import CalendarComponent from "./calendar";
 import OrdersList from "./orderList";
 import RefreshButton from "../general/RefreshButton";
+import { checkTokenAndRedirect } from "../../services/auth";
 
 const IndentPage = () => {
   const [orders, setOrders] = useState({});
@@ -37,7 +38,7 @@ const IndentPage = () => {
   const fetchOrders = async () => {
     try {
       const customerId = await AsyncStorage.getItem("customerId");
-      const userAuthToken = await AsyncStorage.getItem("userAuthToken");
+      const userAuthToken = await checkTokenAndRedirect(navigation)
 
       if (!customerId || !userAuthToken) {
         console.error("Missing customerId or userAuthToken");

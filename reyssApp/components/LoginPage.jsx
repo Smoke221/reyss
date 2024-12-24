@@ -151,11 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
   },
   inputContainer: {
     flexDirection: "row",
