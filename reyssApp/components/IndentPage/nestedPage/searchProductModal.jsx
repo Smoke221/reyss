@@ -10,39 +10,39 @@ import {
   ScrollView,
 } from "react-native";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { ipAddress } from "../../../urls";
 import { checkTokenAndRedirect } from "../../../services/auth";
 import { useNavigation } from "@react-navigation/native";
+import LoadingIndicator from "../../general/Loader";
 
 const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [allProducts, setAllProducts] = useState([]); // Store all products
-  const [products, setProducts] = useState([]); // Products to be shown (based on search)
-  const [categories, setCategories] = useState([]); // Store unique categories
-  const [selectedCategory, setSelectedCategory] = useState(""); // Store selected category
+  const [allProducts, setAllProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Fetch all products when modal is visible
     if (isVisible) {
       fetchProducts();
     }
   }, [isVisible]);
 
   useEffect(() => {
-    // Filter products when search query or category changes
     filterProducts();
-  }, [searchQuery, selectedCategory, allProducts]);
+  }, [searchQuery, selectedCategory, selectedBrand, allProducts]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const userAuthToken = await checkTokenAndRedirect(navigation)
+      const userAuthToken = await checkTokenAndRedirect(navigation);
 
       const response = await axios.get(`http://${ipAddress}:8090/products`, {
         headers: {
@@ -51,14 +51,19 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
         },
       });
 
-      setAllProducts(response.data); // Store all products
-      setProducts(response.data); // Initially display all products
+      setAllProducts(response.data);
+      setProducts(response.data);
 
-      // Extract unique categories from the products
       const productCategories = [
         ...new Set(response.data.map((product) => product.category)),
       ];
       setCategories(productCategories);
+
+      const productBrands = [
+        ...new Set(response.data.map((product) => product.brand)),
+      ];
+      setBrands(productBrands);
+
       setError(null);
     } catch (err) {
       setError("Failed to fetch products");
@@ -71,14 +76,18 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
   const filterProducts = () => {
     let filtered = allProducts;
 
-    // Apply category filter
     if (selectedCategory) {
       filtered = filtered.filter((product) =>
         product.category.toLowerCase().includes(selectedCategory.toLowerCase())
       );
     }
 
-    // Apply search query filter
+    if (selectedBrand) {
+      filtered = filtered.filter((product) =>
+        product.brand.toLowerCase().includes(selectedBrand.toLowerCase())
+      );
+    }
+
     if (searchQuery.length > 2) {
       filtered = filtered.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -87,49 +96,6 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
 
     setProducts(filtered);
   };
-
-  const renderProductItem = ({ item }) => (
-    <View style={styles.productItem}>
-      <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productDetails}>
-          Price: ₹{item.discountPrice} | {item.category}
-        </Text>
-      </View>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => onAddProduct(item)}
-      >
-        <Ionicons name="add" size={18} color="white" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderCategoryButton = (category) => (
-    <TouchableOpacity
-      key={category}
-      style={[
-        styles.categoryButton,
-        selectedCategory === category && styles.selectedCategoryButton,
-      ]}
-      onPress={() => {
-        if (searchQuery) {
-          setSearchQuery("");
-        }
-        //remove the condition if you need the search params even if the category is selected.
-        setSelectedCategory(selectedCategory === category ? "" : category);
-      }}
-    >
-      <Text
-        style={[
-          styles.categoryButtonText,
-          selectedCategory === category && styles.selectedCategoryButtonText,
-        ]}
-      >
-        {category}
-      </Text>
-    </TouchableOpacity>
-  );
 
   return (
     <Modal
@@ -142,23 +108,59 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
         <View style={styles.modalContainer}>
           <View style={styles.categoryFilterContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TouchableOpacity
-                style={[
-                  styles.categoryButton,
-                  !selectedCategory && styles.selectedCategoryButton,
-                ]}
-                onPress={() => setSelectedCategory("")}
-              >
-                <Text
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category}
                   style={[
-                    styles.categoryButtonText,
-                    !selectedCategory && styles.selectedCategoryButtonText,
+                    styles.categoryButton,
+                    selectedCategory === category &&
+                      styles.selectedCategoryButton,
                   ]}
+                  onPress={() => {
+                    setSelectedCategory(
+                      selectedCategory === category ? "" : category
+                    );
+                    setSearchQuery("");
+                  }}
                 >
-                  All
-                </Text>
-              </TouchableOpacity>
-              {categories.map((category) => renderCategoryButton(category))}
+                  <Text
+                    style={[
+                      styles.categoryButtonText,
+                      selectedCategory === category &&
+                        styles.selectedCategoryButtonText,
+                    ]}
+                  >
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.brandFilterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {brands.map((brand) => (
+                <TouchableOpacity
+                  key={brand}
+                  style={[
+                    styles.brandButton,
+                    selectedBrand === brand && styles.selectedBrandButton,
+                  ]}
+                  onPress={() => {
+                    setSelectedBrand(selectedBrand === brand ? "" : brand);
+                    setSearchQuery("");
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.brandButtonText,
+                      selectedBrand === brand && styles.selectedBrandButtonText,
+                    ]}
+                  >
+                    {brand}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
           </View>
 
@@ -174,12 +176,32 @@ const SearchProductModal = ({ isVisible, onClose, onAddProduct }) => {
             </TouchableOpacity>
           </View>
 
-          {loading && <Text>Loading...</Text>}
+          {/* Dark overlay when loading */}
+          {loading && <View style={styles.loadingOverlay} />}
+          {loading && <LoadingIndicator />}
+
           {error && <Text style={styles.errorText}>{error}</Text>}
 
           <FlatList
             data={products}
-            renderItem={renderProductItem}
+            renderItem={({ item }) => (
+              <View style={styles.productItem}>
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{item.name}</Text>
+                  <Text style={styles.productDetails}>
+                    {" "}
+                    {item.category} | {item.brand} |{" "}
+                    <Text style={styles.price}>₹{item.discountPrice}</Text>
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => onAddProduct(item)}
+                >
+                  <Ionicons name="add" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+            )}
             keyExtractor={(item, index) => index.toString()}
             ListEmptyComponent={
               <Text style={styles.emptyText}>
@@ -213,6 +235,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     marginBottom: 10,
   },
+  brandFilterContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 10,
+  },
   categoryButton: {
     backgroundColor: "#f0f0f0",
     paddingVertical: 5,
@@ -231,6 +258,24 @@ const styles = StyleSheet.create({
   selectedCategoryButtonText: {
     color: "white",
   },
+  brandButton: {
+    backgroundColor: "#f0f0f0",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    marginRight: 5,
+    marginBottom: 5,
+  },
+  selectedBrandButton: {
+    backgroundColor: "#ffcc00",
+  },
+  brandButtonText: {
+    fontSize: 12,
+    color: "#333",
+  },
+  selectedBrandButtonText: {
+    color: "white",
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -238,48 +283,60 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 10,
-    marginRight: 10,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    height: 40,
   },
   closeButton: {
-    padding: 10,
+    marginLeft: 10,
   },
   productItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 10,
+    borderBottomColor: "#ccc",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 14,
     fontWeight: "bold",
   },
+  price: {
+    color: "#ff6347",
+  },
   productDetails: {
-    color: "#666",
-    marginTop: 5,
+    fontSize: 12,
+    color: "#777",
   },
   addButton: {
     backgroundColor: "#ffcc00",
+    padding: 10,
     borderRadius: 20,
-    padding: 5,
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#777",
   },
   errorText: {
     color: "red",
     textAlign: "center",
-    marginVertical: 10,
+    marginBottom: 10,
   },
-  emptyText: {
-    textAlign: "center",
-    color: "#666",
-    marginTop: 20,
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 1,
   },
 });
 

@@ -4,6 +4,6 @@ const environments = {
   work: "10.0.18.105"
 };
 
-const selectedEnvironment = "dev"
+const selectedEnvironment = "work"
 
 export const ipAddress = environments[selectedEnvironment];

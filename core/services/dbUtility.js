@@ -107,11 +107,11 @@ const getProductss = async () => {
 
 const getProducts = async (filters) => {
   try {
-    let query = "SELECT * FROM products";
+    let query = "SELECT * FROM products WHERE status != 'Inactive'";
     const values = [];
 
     if (filters.search) {
-      query += " WHERE name LIKE ?";
+      query += " AND name LIKE ?";
       values.push(`%${filters.search}%`);
     }
 
