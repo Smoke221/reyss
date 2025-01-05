@@ -125,7 +125,7 @@ const getProducts = async (filters) => {
 
 const getOrder = async (customerId, orderId) => {
   try {
-    const query = "SELECT * FROM orders WHERE customer_id = ? AND order_id = ?";
+    const query = "SELECT * FROM orders WHERE customer_id = ? AND id = ?";
     const order = await executeQuery(query, [customerId, orderId]);
     return order;
   } catch (error) {
@@ -635,6 +635,151 @@ const updateProduct = async (
   }
 };
 
+const toggleDeliveryStatus = async (customerId, orderId) => {
+  try {
+    // Update the delivery_status to 'delivered' for the given customerId and orderId
+    const updateStatusQuery = `
+      UPDATE orders
+      SET delivery_status = 'delivered'
+      WHERE customer_id = ? AND id = ?
+    `;
+
+    const result = await executeQuery(updateStatusQuery, [customerId, orderId]);
+
+    if (result.affectedRows === 0) {
+      throw new Error(
+        `Order with ID ${orderId} not found for customer ${customerId}`
+      );
+    }
+
+    return "Delivery status updated to 'delivered'";
+  } catch (error) {
+    console.error("Error in toggleDeliveryStatus:", error);
+    throw new Error("Database update failed");
+  }
+};
+
+const getDefectReportById = async (reportId) => {
+  const query = `
+    SELECT * FROM product_defects WHERE id = ?
+  `;
+  const [defectReport] = await executeQuery(query, [reportId]);
+  return defectReport;
+};
+
+const updateOrderProducts = async (orderId, productId, defectiveQuantity) => {
+  try {
+    // Step 1: Fetch the current quantity of the product in the order
+    const fetchQuantityQuery = `
+      SELECT quantity
+      FROM order_products
+      WHERE order_id = ? AND product_id = ?
+    `;
+    const [result] = await executeQuery(fetchQuantityQuery, [
+      orderId,
+      productId,
+    ]);
+
+    if (!result) {
+      return {
+        success: false,
+        message: `Product with ID ${productId} not found in the order ${orderId}`,
+      };
+    }
+
+    const currentQuantity = result.quantity;
+
+    // Step 2: Validate if the defective quantity is valid
+    if (currentQuantity < defectiveQuantity) {
+      return {
+        success: false,
+        message: `Reported defective quantity (${defectiveQuantity}) exceeds the available quantity (${currentQuantity}) for product ${productId}.`,
+      };
+    }
+
+    // Step 3: If defective quantity is less than current quantity, update the quantity
+    if (currentQuantity > defectiveQuantity) {
+      const newQuantity = currentQuantity - defectiveQuantity;
+      const updateQuantityQuery = `
+        UPDATE order_products
+        SET quantity = ?
+        WHERE order_id = ? AND product_id = ?
+      `;
+      await executeQuery(updateQuantityQuery, [
+        newQuantity,
+        orderId,
+        productId,
+      ]);
+
+      return {
+        success: true,
+        message: `Quantity for product ${productId} in order ${orderId} updated to ${newQuantity}.`,
+      };
+    }
+    // Step 4: If the defective quantity equals the current quantity, delete the product
+    else {
+      const deleteProductQuery = `
+        DELETE FROM order_products
+        WHERE order_id = ? AND product_id = ?
+      `;
+      await executeQuery(deleteProductQuery, [orderId, productId]);
+
+      return {
+        success: true,
+        message: `Product ${productId} removed from order ${orderId} as the defective quantity matches the total quantity.`,
+      };
+    }
+  } catch (error) {
+    console.error("Error in updateOrderProducts:", error);
+    return {
+      success: false,
+      message: `An error occurred while updating the product in order ${orderId}: ${error.message}`,
+    };
+  }
+};
+
+// Function to update the total amount after defective products are processed
+const updateOrderTotal = async (orderId) => {
+  try {
+    // Step 1: Fetch all remaining products and their prices for the order
+    const fetchProductsQuery = `
+      SELECT op.product_id, op.quantity, op.price
+      FROM order_products op
+      WHERE op.order_id = ?
+    `;
+    const remainingProducts = await executeQuery(fetchProductsQuery, [orderId]);
+
+    if (!remainingProducts.length) {
+      throw new Error(`No products found for order ${orderId}`);
+    }
+
+    // Step 2: Calculate the new total amount
+    let newTotal = 0;
+    remainingProducts.forEach((product) => {
+      newTotal += product.quantity * product.price;
+    });
+
+    // Step 3: Update the total amount in the orders table
+    const updateTotalQuery = `
+      UPDATE orders
+      SET total_amount = ?
+      WHERE id = ?
+    `;
+    await executeQuery(updateTotalQuery, [newTotal, orderId]);
+
+    return {
+      success: true,
+      message: `Order ${orderId} total updated to ${newTotal}.`,
+    };
+  } catch (error) {
+    console.error("Error in updateOrderTotal:", error);
+    return {
+      success: false,
+      message: `An error occurred while updating the order total: ${error.message}`,
+    };
+  }
+};
+
 module.exports = {
   isUserExists,
   findUserByUserName,
@@ -659,5 +804,9 @@ module.exports = {
   getProductss,
   orderHistory,
   checkExistingOrder,
-  updateProduct
+  updateProduct,
+  toggleDeliveryStatus,
+  getDefectReportById,
+  updateOrderProducts,
+  updateOrderTotal
 };

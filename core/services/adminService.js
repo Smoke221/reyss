@@ -8,9 +8,10 @@ const {
   updateUser,
   updateProduct,
   getProductById,
+  getDefectReportById,
+  updateOrderProducts,
+  updateOrderTotal,
 } = require("./dbUtility");
-const XLSX = require("xlsx");
-const ExcelJS = require("exceljs");
 
 exports.addUserService = async (userDetails) => {
   try {
@@ -110,40 +111,6 @@ exports.addProductService = async (productData) => {
   }
 };
 
-exports.exportToExcelService = async (data) => {
-  try {
-    console.log(`🪵 → data:`, data);
-    // Check if data is valid and not empty
-    // if (!Array.isArray(data) || data.length === 0) {
-    //   throw new Error("No data provided for Excel export.");
-    // }
-
-    // Create a new workbook
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Data");
-
-    // Dynamically set columns using the keys of the first object in the data array
-    const columns = Object.keys(data[0]).map((key) => ({
-      header: key, // Column header
-      key, // Access key in data objects
-    }));
-    worksheet.columns = columns;
-
-    // Add rows
-    data.forEach((item) => {
-      worksheet.addRow(item);
-    });
-
-    // Create buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    return buffer; // Return the buffer for file download
-  } catch (error) {
-    console.error("Error in exportToExcelService:", error.message);
-    throw new Error("Failed to generate Excel file.");
-  }
-};
-
 exports.updateUserService = async (customer_id, data) => {
   try {
     const response = await updateUser(customer_id, data);
@@ -184,6 +151,28 @@ exports.updateProductService = async (id, updatedProductData) => {
     };
   } catch (error) {
     console.error("Error in productService updateProduct:", error);
+    throw error;
+  }
+};
+
+exports.updateOrderAfterDefectApprovalService = async (reportId, orderId) => {
+  try {
+    // Fetch the defect report
+    const defectReport = await getDefectReportById(reportId);
+
+    if (!defectReport) {
+      throw new Error("Defect report not found.");
+    }
+
+    const { product_id, quantity } = defectReport;
+
+    // Remove the defective products from the order (update `order_products` table)
+    await updateOrderProducts(orderId, product_id, quantity);
+    await updateOrderTotal(orderId);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in updateOrderAfterDefectApprovalService:", error);
     throw error;
   }
 };

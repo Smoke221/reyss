@@ -5,6 +5,9 @@ const {
   orderHistoryController,
   checkOrderController,
   getOrderController,
+  getAllOrdersController,
+  toggleDeliveryStatusController,
+  reportDefectController,
 } = require("../controllers/orderController");
 const { getProducts } = require("../services/dbUtility");
 
@@ -14,5 +17,11 @@ orderRouter.get("/check", authenticate, checkOrderController);
 orderRouter.post("/place", authenticate, placeOrderController);
 orderRouter.get("/history", authenticate, orderHistoryController);
 orderRouter.get("/order", authenticate, getOrderController);
+
+orderRouter.get("/all", authenticate, getAllOrdersController);
+
+orderRouter.post("/toggleStatus", authenticate, toggleDeliveryStatusController);
+
+orderRouter.post("/report", authenticate, reportDefectController);
 
 module.exports = orderRouter;

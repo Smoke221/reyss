@@ -3,6 +3,9 @@ const {
   checkOrderService,
   placeOrderService,
   getOrderService,
+  getAllOrdersService,
+  toggleDeliverySatusService,
+  reportDefectService,
 } = require("../services/orderService");
 
 const placeOrderController = async (req, res) => {
@@ -123,9 +126,78 @@ const getOrderController = async (req, res) => {
   }
 };
 
+const getAllOrdersController = async (req, res) => {
+  try {
+    const customerId = req.userID;
+    const allOrders = await getAllOrdersService(customerId);
+
+    return res.status(200).json(allOrders);
+  } catch (error) {
+    console.error("Error in getAllOrdersController:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+const toggleDeliveryStatusController = async (req, res) => {
+  try {
+    const customerId = req.userID;
+    const { orderId } = req.query;
+
+    if (!customerId || !orderId) {
+      return res
+        .status(400)
+        .json({ message: "Customer id or orderid not found." });
+    }
+
+    const updateResponse = await toggleDeliverySatusService(
+      customerId,
+      orderId
+    );
+
+    return res.status(200).json(updateResponse);
+  } catch (error) {
+    console.error("Error in toggleDeliveryStatusController:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+const reportDefectController = async (req, res) => {
+  try {
+    const customerId = req.userID;
+    const { orderId, defectiveProducts } = req.body;
+
+    if (!customerId || !orderId || !defectiveProducts.length) {
+      return res
+        .status(400)
+        .json({ message: "Customer id or orderid not found." });
+    }
+
+    const reportResponse = await reportDefectService(
+      customerId,
+      orderId,
+      defectiveProducts
+    );
+    return res.status(200).json(reportResponse);
+  } catch (error) {
+    console.error("Error in reportDefectController:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
 module.exports = {
   placeOrderController,
   orderHistoryController,
   checkOrderController,
   getOrderController,
+  getAllOrdersController,
+  toggleDeliveryStatusController,
+  reportDefectController,
 };

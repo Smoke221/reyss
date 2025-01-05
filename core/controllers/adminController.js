@@ -1,8 +1,5 @@
 const adminService = require("../services/adminService");
 const bcrypt = require("bcryptjs");
-const XLSX = require("xlsx");
-const fs = require("fs");
-const path = require("path");
 
 exports.addUserController = async (req, res) => {
   try {
@@ -121,49 +118,6 @@ exports.addProductController = async (req, res) => {
   }
 };
 
-exports.exportToExcelController = async (req, res) => {
-  try {
-    const orders = req.body;
-    console.log(`🪵 → req.body:`, orders);
-
-    const formattedOrders = orders.map((order) => ({
-      "Order ID": order.id,
-      "Customer ID": order.customer_id,
-      "Customer Name": order.customer_name,
-      "Total Amount": order.total_amount,
-      "Order Type": order.order_type,
-      "Placed On": new Date(order.placed_on * 1000).toLocaleString(), // Convert epoch to readable date
-      "Product Category": order.category,
-      "Product Name": order.product_name,
-      Status: order.status,
-      "Created At": new Date(order.created_at * 1000).toLocaleString(),
-      "Updated At": new Date(order.updated_at * 1000).toLocaleString(),
-    }));
-
-    // Create a new workbook and add the sheet with data
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(formattedOrders);
-    XLSX.utils.book_append_sheet(wb, ws, "Orders");
-
-    // Generate buffer for the workbook
-    const buffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
-
-    // Set proper response headers to force download
-    res.setHeader("Content-Disposition", "attachment; filename=orders.xlsx");
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-
-    // Send the buffer as a response
-    res.send(buffer);
-  } catch (error) {
-    console.error("Error in exportToExcelController:", error);
-    res
-      .status(500)
-      .json({ status: false, message: "Failed to export data to Excel." });
-  }
-};
 
 exports.updateUserController = async (req, res) => {
   try {
@@ -212,5 +166,33 @@ exports.updateProductController = async (req, res) => {
   } catch (error) {
     console.error("Error in updateProduct controller:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+exports.approveDefectReportController = async (req, res) => {
+  const { reportId, orderId } = req.body;
+
+  if (!reportId || !orderId) {
+    return res
+      .status(400)
+      .json({ message: "Missing required fields: reportId, orderId" });
+  }
+
+  try {
+    const result = await adminService.updateOrderAfterDefectApprovalService(
+      reportId,
+      orderId
+    );
+
+    return res.status(200).json({
+      message:
+        "Defective products approved and removed from the order successfully.",
+      result,
+    });
+  } catch (error) {
+    console.error("Error approving defect report:", error);
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
