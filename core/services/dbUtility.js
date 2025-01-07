@@ -339,12 +339,24 @@ const getAllOrders = async (params) => {
       date, // Date filter (specific date)
     } = params;
 
-    const offset = (page - 1) * limit;
+    // Ensure limit and page are treated as numbers
+    const numericLimit = Number(limit);
+    const numericPage = Number(page);
+
+    // Validate that limit and page are valid numbers
+    if (isNaN(numericLimit) || numericLimit <= 0) {
+      throw new Error("Invalid limit value. It must be a positive number.");
+    }
+    if (isNaN(numericPage) || numericPage <= 0) {
+      throw new Error("Invalid page value. It must be a positive number.");
+    }
+
+    const offset = (numericPage - 1) * numericLimit;
 
     // Base query for orders, joining with users for customer details
     // Use GROUP_CONCAT to aggregate product details and SUM to calculate total amount from order_products
     let query = `
-      SELECT o.id, o.placed_on, o.status, o.total_amount AS total_amount, 
+      SELECT o.id, o.placed_on, o.delivery_status, o.total_amount AS total_amount, 
              u.name AS customer_name,
              GROUP_CONCAT(op.category SEPARATOR ', ') AS categories,
              GROUP_CONCAT(op.name SEPARATOR ', ') AS product_names,
@@ -384,7 +396,7 @@ const getAllOrders = async (params) => {
 
     // Group by order id and dynamically add sorting and pagination
     query += ` GROUP BY o.id ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
-    values.push(limit, offset);
+    values.push(numericLimit, offset);
 
     // Execute the query
     const orders = await executeQuery(query, values);
@@ -808,5 +820,5 @@ module.exports = {
   toggleDeliveryStatus,
   getDefectReportById,
   updateOrderProducts,
-  updateOrderTotal
+  updateOrderTotal,
 };
