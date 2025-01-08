@@ -529,22 +529,33 @@ const orderHistory = async (customerId, params) => {
     const { page = 1, limit = 10, orderBy = "ASC", type = null } = params;
     const offset = (page - 1) * limit;
 
-    let query = `SELECT * FROM orders WHERE customer_id = ?`;
+    let query = `
+      SELECT o.id AS order_id, o.customer_id, o.order_type, o.placed_on, o.total_amount,
+             op.product_id, op.quantity, op.price, op.name, op.category
+      FROM orders o
+      LEFT JOIN order_products op ON o.id = op.order_id
+      WHERE o.customer_id = ?`;
+
     let values = [customerId];
 
     if (type) {
-      query += ` AND order_type = ?`;
+      query += ` AND o.order_type = ?`;
       values.push(type);
     }
 
-    query += ` ORDER BY placed_on ${orderBy} LIMIT ? OFFSET ?`;
+    query += ` ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
     values.push(limit, offset);
 
-    let countQuery = `SELECT COUNT(*) AS count FROM orders WHERE customer_id = ?`;
+    let countQuery = `
+      SELECT COUNT(DISTINCT o.id) AS count
+      FROM orders o
+      LEFT JOIN order_products op ON o.id = op.order_id
+      WHERE o.customer_id = ?`;
+
     let countValues = [customerId];
 
     if (type) {
-      countQuery += ` AND order_type = ?`;
+      countQuery += ` AND o.order_type = ?`;
       countValues.push(type);
     }
 
@@ -553,7 +564,49 @@ const orderHistory = async (customerId, params) => {
       executeQuery(countQuery, countValues),
     ]);
 
-    return { response, count: countResponse[0].count };
+    // Group products by order_id and format the response
+    const groupedOrders = response.reduce((acc, order) => {
+      const {
+        order_id,
+        customer_id,
+        order_type,
+        placed_on,
+        total_amount,
+        product_id,
+        quantity,
+        price,
+        name,
+        category,
+      } = order;
+
+      // Check if the order already exists in the accumulator
+      let existingOrder = acc.find((o) => o.order_id === order_id);
+
+      if (!existingOrder) {
+        existingOrder = {
+          order_id,
+          customer_id,
+          order_type,
+          placed_on,
+          total_amount,
+          products: [],
+        };
+        acc.push(existingOrder);
+      }
+
+      // Add the product to the order's products array
+      existingOrder.products.push({
+        product_id,
+        quantity,
+        price,
+        name,
+        category,
+      });
+
+      return acc;
+    }, []);
+
+    return { response: groupedOrders, count: countResponse[0].count };
   } catch (error) {
     console.error("Error in orderHistory dbutility: ", error);
     throw new Error("Failed to get users orders.");
