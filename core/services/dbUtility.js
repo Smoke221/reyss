@@ -49,7 +49,7 @@ const getUserById = async (customerId) => {
     const [latestOrder] = await executeQuery(latestOrderQuery, [customerId]);
 
     const defaultOrderQuery = `
-      SELECT id, customer_id, total_amount, order_type FROM default_orders WHERE customer_id = ? LIMIT 1
+      SELECT customer_id, total_amount, order_type FROM default_orders WHERE customer_id = ? LIMIT 1
     `;
     const [defaultOrder] = await executeQuery(defaultOrderQuery, [customerId]);
 
