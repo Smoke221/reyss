@@ -530,7 +530,7 @@ const orderHistory = async (customerId, params) => {
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT o.id AS order_id, o.customer_id, o.order_type, o.placed_on, o.total_amount,
+      SELECT o.id AS order_id, o.customer_id, o.order_type, o.placed_on, o.total_amount, o.delivery_status,
              op.product_id, op.quantity, op.price, op.name, op.category
       FROM orders o
       LEFT JOIN order_products op ON o.id = op.order_id
@@ -572,6 +572,7 @@ const orderHistory = async (customerId, params) => {
         order_type,
         placed_on,
         total_amount,
+        delivery_status,
         product_id,
         quantity,
         price,
@@ -589,6 +590,7 @@ const orderHistory = async (customerId, params) => {
           order_type,
           placed_on,
           total_amount,
+          delivery_status,
           products: [],
         };
         acc.push(existingOrder);
@@ -724,6 +726,22 @@ const toggleDeliveryStatus = async (customerId, orderId) => {
   }
 };
 
+const getAllDefectOrders = async () => {
+  const query = `
+    SELECT * FROM product_defects
+  `;
+  const response = await executeQuery(query, [reportId]);
+  return response;
+};
+
+const getDefectReportByCustomerId = async (customer_id) => {
+  const query = `
+    SELECT * FROM product_defects WHERE customer_id = ?
+  `;
+  const defectOrders = await executeQuery(query, [customer_id]);
+  return defectOrders;
+};
+
 const getDefectReportById = async (reportId) => {
   const query = `
     SELECT * FROM product_defects WHERE id = ?
@@ -767,11 +785,12 @@ const updateOrderProducts = async (orderId, productId, defectiveQuantity) => {
       const newQuantity = currentQuantity - defectiveQuantity;
       const updateQuantityQuery = `
         UPDATE order_products
-        SET quantity = ?
+        SET quantity = ? AND status = ?
         WHERE order_id = ? AND product_id = ?
       `;
       await executeQuery(updateQuantityQuery, [
         newQuantity,
+        "approved",
         orderId,
         productId,
       ]);
@@ -874,4 +893,6 @@ module.exports = {
   getDefectReportById,
   updateOrderProducts,
   updateOrderTotal,
+  getAllDefectOrders,
+  getDefectReportByCustomerId,
 };

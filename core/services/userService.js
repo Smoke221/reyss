@@ -7,6 +7,7 @@ const {
   updateUser,
   orderHistory,
   getMonthlyTotals,
+  getDefectReportByCustomerId,
 } = require("./dbUtility");
 const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 const { getTransactionsForMonth } = require("./transactionService");
@@ -124,6 +125,8 @@ const orderHistoryService = async (customerId, params) => {
   try {
     const getResponse = await orderHistory(customerId, params);
 
+    const defectOrders = await getDefectReportByCustomerId(customerId);
+
     return {
       statusCode: 200,
       response: {
@@ -131,6 +134,7 @@ const orderHistoryService = async (customerId, params) => {
         message: "Orders retrieved.",
         orders: getResponse.response,
         count: getResponse.count,
+        defectOrders: defectOrders,
       },
     };
   } catch (err) {
