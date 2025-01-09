@@ -544,7 +544,7 @@ const orderHistory = async (customerId, params) => {
     }
 
     query += ` ORDER BY o.placed_on ${orderBy} LIMIT ? OFFSET ?`;
-    values.push(limit, offset);
+    values.push(Number(limit), Number(offset));
 
     let countQuery = `
       SELECT COUNT(DISTINCT o.id) AS count
