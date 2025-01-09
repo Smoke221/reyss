@@ -3,10 +3,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Home from "./HomePage/Home";
 import Transactions from "./Transactions/transactions";
-import Profile from "./Profile/profile";
 import { useNavigation } from "@react-navigation/native";
 import IndentStack from "./IndentPage/IndentStack";
 import HomeStack from "./HomePage/HomeStack";
+import ProfileStack from "./Profile/ProfileStack";
 
 const Tab = createBottomTabNavigator();
 
@@ -58,7 +58,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={Profile}
+        component={ProfileStack}
         options={{
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account" size={size} color={color} />

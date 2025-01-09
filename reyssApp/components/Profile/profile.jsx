@@ -59,7 +59,7 @@ const ProfilePage = () => {
         {/* Orders */}
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => openModal(ProfileContent)}
+          onPress={() => navigation.navigate("Orders")} // Navigate to Orders screen
         >
           <View style={styles.menuIconText}>
             <MaterialIcons
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderRadius: 10,
-    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.16)',
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.16)",
   },
   menuIconText: {
     flexDirection: "row",
