@@ -12,6 +12,16 @@ const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => {
   // Determine if the arrow button should be shown
   const showArrowButton = order || (!order && !isPastDate);
 
+  // Get delivery info based on shift
+  const getDeliveryInfo = (shift) => {
+    if (shift === "AM") {
+      return "Same day delivery";
+    } else if (shift === "PM") {
+      return "Next day 5AM";
+    }
+    return "";
+  };
+
   return (
     <View style={styles.orderCard}>
       <View style={styles.orderContentWrapper}>
@@ -42,6 +52,9 @@ const OrderCard = ({ shift, order, selectedDate, onOrderClick }) => {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Display delivery info in top-right of the card */}
+      <Text style={styles.deliveryInfo}>{getDeliveryInfo(shift)}</Text>
     </View>
   );
 };
@@ -52,6 +65,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginVertical: 5,
+    position: "relative",
   },
   orderContentWrapper: {
     flexDirection: "row",
@@ -77,6 +91,14 @@ const styles = StyleSheet.create({
   arrowButton: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  deliveryInfo: {
+    fontSize: 12,
+    color: "#007BFF",
+    position: "absolute",
+    top: 10,
+    right: 10,
+    fontWeight: "bold",
   },
 });
 

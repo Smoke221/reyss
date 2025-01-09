@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import moment from "moment";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import Icon from "react-native-vector-icons/MaterialIcons"; // Assuming you're using Expo
+import Icon from "react-native-vector-icons/MaterialIcons";
 import LoadingIndicator from "../general/Loader";
 import OrderDetails from "./nestedPage/orderDetails";
 import OrderProductsList from "./nestedPage/orderProductsList";
@@ -18,7 +18,7 @@ import { checkTokenAndRedirect } from "../../services/auth";
 
 const PlaceOrderPage = ({ route }) => {
   const { order, selectedDate, shift } = route.params;
-  const [orderDetails, setOrderDetails] = useState([null]);
+  const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [defaultOrder, setDefaultOrder] = useState(null);
@@ -30,29 +30,37 @@ const PlaceOrderPage = ({ route }) => {
 
   const isPastDate = moment(selectedDate).isBefore(moment(), "day");
   const isCurrentDate = moment(selectedDate).isSame(moment(), "day");
+  const hasExistingOrder = orderDetails !== null;
+
+  // Check if ordering should be disabled
+  const isOrderingDisabled = isPastDate || hasExistingOrder;
 
   useEffect(() => {
     const fetchDefaultOrder = async () => {
       const storedOrder = await AsyncStorage.getItem("default");
-      console.log(storedOrder);
       if (storedOrder) {
         setDefaultOrder(JSON.parse(storedOrder));
-        setShowModal(true); // Show the modal when default order is loaded
+        // Only show modal if ordering is not disabled
+        setShowModal(!isOrderingDisabled);
       }
       setLoading(false);
     };
 
     fetchDefaultOrder();
-  }, []);
+  }, [isOrderingDisabled]);
 
   useEffect(() => {
-    if (order) {
-      fetchOrderDetails(order.orderId);
-    } else {
-      if (isPastDate && !orderDetails) {
-        showAlertAndGoBack();
+    const initializeOrder = async () => {
+      if (order) {
+        await fetchOrderDetails(order.orderId);
+      } else {
+        if (isPastDate) {
+          showAlertAndGoBack();
+        }
       }
-    }
+    };
+
+    initializeOrder();
   }, [order]);
 
   const fetchOrderDetails = async (orderId) => {
@@ -89,19 +97,16 @@ const PlaceOrderPage = ({ route }) => {
   };
 
   const showAlertAndGoBack = () => {
-    Alert.alert(
-      "No Orders Found",
-      "There are no orders for this date.",
-      [
-        {
-          text: "OK",
-          // onPress: () => {
-          //   navigation.goBack();
-          // },
-        },
-      ],
-      { cancelable: false }
-    );
+    let message = "There are no orders for this date.";
+    if (hasExistingOrder) {
+      message = "An order already exists for this date.";
+    } else if (isPastDate) {
+      message = "Cannot place orders for past dates.";
+    }
+
+    Alert.alert("Order Not Allowed", message, [{ text: "OK" }], {
+      cancelable: false,
+    });
 
     setTimeout(() => {
       navigation.goBack();
@@ -353,7 +358,7 @@ const PlaceOrderPage = ({ route }) => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <BackButton navigation={navigation} />
-        {editable && (
+        {editable && !isOrderingDisabled && (
           <TouchableOpacity
             style={styles.searchButton}
             onPress={() => setShowSearchModal(true)}
@@ -363,40 +368,26 @@ const PlaceOrderPage = ({ route }) => {
         )}
       </View>
 
-      {/* Render defaultOrder and handle logic based on whether it's a past date */}
-      {defaultOrder && (
+      {/* Render order details */}
+      {(hasExistingOrder || defaultOrder) && (
         <>
-          {/* Handle logic for past dates */}
-          {isPastDate || (isCurrentDate && !orderDetails) ? (
-            // View-only mode for past dates, no editing or submitting
-            <>
-              <OrderDetails
-                orderDetails={orderDetails}
-                selectedDate={selectedDate}
-                shift={shift}
-                isEditable={editable}
-              />
-              <OrderProductsList
-                products={orderDetails.products}
-                isEditable={false} // Disable edit mode for past dates
-              />
-            </>
-          ) : (
-            // Editable mode for current or future dates
-            <>
-              <OrderDetails
-                orderDetails={defaultOrder}
-                selectedDate={selectedDate}
-                shift={shift}
-                isEditable={editable}
-              />
-              <OrderProductsList
-                products={defaultOrder.products}
-                isEditable={editable}
-                onQuantityChange={handleQuantityChange}
-              />
+          <OrderDetails
+            orderDetails={hasExistingOrder ? orderDetails : defaultOrder}
+            selectedDate={selectedDate}
+            shift={shift}
+            isEditable={editable && !isOrderingDisabled}
+          />
+          <OrderProductsList
+            products={
+              hasExistingOrder ? orderDetails.products : defaultOrder.products
+            }
+            isEditable={editable && !isOrderingDisabled}
+            onQuantityChange={handleQuantityChange}
+          />
 
-              {/* Show SubmitButton or OrderModal based on the editable state */}
+          {/* Only show ordering-related components if ordering is not disabled */}
+          {!isOrderingDisabled && (
+            <>
               {editable ? (
                 <SubmitButton handleSubmit={handleSubmitEdit} />
               ) : (
@@ -411,7 +402,6 @@ const PlaceOrderPage = ({ route }) => {
                 </>
               )}
 
-              {/* Show search modal when adding products */}
               <SearchProductModal
                 isVisible={showSearchModal}
                 onClose={() => setShowSearchModal(false)}

@@ -10,7 +10,7 @@ const OrderDetails = ({ orderDetails, selectedDate, shift, isEditable }) => {
         <Text style={styles.orderText}>Order ID: {orderDetails.order.id}</Text>
       )} */}
 
-      <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text>
+      {/* <Text style={styles.orderText}>Delivery Date: {selectedDate}</Text> */}
       <Text style={styles.orderText}>Shift: {shift}</Text>
 
       {/* Hide Total Amount when in editable mode */}
