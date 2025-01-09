@@ -527,7 +527,7 @@ const updateUser = async (customer_id, userDetails) => {
 const orderHistory = async (customerId, params) => {
   try {
     const { page = 1, limit = 10, orderBy = "ASC", type = null } = params;
-    const offset = (page - 1) * limit;
+    const offset = (page - 1) * Number(limit);
 
     let query = `
       SELECT o.id AS order_id, o.customer_id, o.order_type, o.placed_on, o.total_amount, o.delivery_status,
