@@ -58,7 +58,7 @@ const userDetailsController = async (req, res) => {
       user: result.user,
       latestOrder: result.latestOrder,
       defaultOrder: result.defaultOrder,
-      pendingAmount: result.pendingAmount
+      pendingAmount: result.pendingAmount,
     });
   } catch (err) {
     console.error("Error fetching user details:", err.message);
@@ -103,8 +103,6 @@ const changePasswordController = async (req, res) => {
 const orderHistoryController = async (req, res) => {
   try {
     const customerId = req.userID;
-    console.log(`🪵 → req:`, req.query)
-
     if (!customerId) {
       res.status(400).send({ status: false, message: "Insufficient params!!" });
       return;
@@ -130,9 +128,36 @@ const orderHistoryController = async (req, res) => {
   }
 };
 
+const createDefaultOrderController = async (req, res) => {
+  try {
+    const { products } = req.body;
+    const customerId = req.userID;
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({
+        message: "Products should not be empty",
+      });
+    }
+
+    const result = await userService.createDefaultOrderService(
+      customerId,
+      products
+    );
+
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("Error in createDefaultOrderController:", error);
+    return res.status(500).json({
+      message: "Failed to create default order",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   loginController,
   userDetailsController,
   changePasswordController,
   orderHistoryController,
+  createDefaultOrderController,
 };

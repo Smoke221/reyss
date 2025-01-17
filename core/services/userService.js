@@ -8,6 +8,7 @@ const {
   orderHistory,
   getMonthlyTotals,
   getDefectReportByCustomerId,
+  insertDefaultOrder,
 } = require("./dbUtility");
 const { getProductsWithDetails } = require("../helpers/productDetailsMap");
 const { getTransactionsForMonth } = require("./transactionService");
@@ -77,7 +78,7 @@ const getUserDetailsByCustomerId = async (customerId) => {
     const { user, defaultOrder, latestOrder } = await getUserById(customerId);
 
     let detailedDefaultOrder = defaultOrder
-      ? await getProductsWithDetails(defaultOrder)
+      ? await getProductsWithDetails(defaultOrder, customerId)
       : null;
     // const detailedLatestOrder = await getProductsWithDetails(latestOrder);
     const transactions = await getMonthlyTotals(customerId, 12, 2024);
@@ -142,9 +143,36 @@ const orderHistoryService = async (customerId, params) => {
   }
 };
 
+const createDefaultOrderService = async (customerId, products) => {
+  try {
+    const created_at = Math.floor(Date.now() / 1000);
+    const updated_at = Math.floor(Date.now() / 1000);
+
+    for (const product of products) {
+      const { id, quantity } = product;
+
+      await insertDefaultOrder(
+        customerId,
+        id,
+        quantity,
+        created_at,
+        updated_at
+      );
+    }
+
+    return {
+      message: "Default order created successfully",
+    };
+  } catch (error) {
+    console.error("Error in createDefaultOrderService:", error);
+    throw new Error("Failed to create default order");
+  }
+};
+
 module.exports = {
   loginUser,
   getUserDetailsByCustomerId,
   changePasswordService,
   orderHistoryService,
+  createDefaultOrderService,
 };

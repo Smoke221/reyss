@@ -1,22 +1,26 @@
 const { executeQuery } = require("../dbUtils/db");
 
-const getProductsWithDetails = async (defaultOrder) => {
+const getProductsWithDetails = async (defaultOrder, customer_id) => {
   try {
-    const defaultOrderId = defaultOrder.id;
-    const query = `
-      SELECT dop.product_id, dop.quantity, dop.price, p.name, p.category
-      FROM default_order_products dop
-      JOIN products p ON dop.product_id = p.id
-      WHERE dop.default_order_id = ?
-    `;
-    const products = await executeQuery(query, [defaultOrderId]);
+    const order = {
+      customer_id,
+      total_amount: 0,
+    };
 
-    if (products.length === 0) {
-      return { message: "No products found in the default order." };
-    }
+    const products = defaultOrder.map((row) => {
+      order.total_amount += row.price * row.quantity;
+      return {
+        id: row.product_id,
+        quantity: row.quantity,
+        price: row.price,
+        name: row.name,
+        category: row.category,
+      };
+    });
+
     return {
-      order: { ...defaultOrder },
-      products: products,
+      order,
+      products,
     };
   } catch (error) {
     console.error("Error retrieving product details for default order:", error);

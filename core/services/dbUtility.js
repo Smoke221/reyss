@@ -49,9 +49,26 @@ const getUserById = async (customerId) => {
     const [latestOrder] = await executeQuery(latestOrderQuery, [customerId]);
 
     const defaultOrderQuery = `
-      SELECT id, customer_id, total_amount, order_type FROM default_orders WHERE customer_id = ? LIMIT 1
-    `;
-    const [defaultOrder] = await executeQuery(defaultOrderQuery, [customerId]);
+                              SELECT 
+                                do.id,
+                                do.customer_id,
+                                do.product_id,
+                                do.quantity,
+                                do.created_at,
+                                do.updated_at,
+                                p.name,
+                                p.category,
+                                p.price
+                            FROM 
+                                default_orders do
+                            JOIN 
+                                products p
+                            ON 
+                                do.product_id = p.id
+                            WHERE
+                                do.customer_id = ?
+                              `;
+    const defaultOrder = await executeQuery(defaultOrderQuery, [customerId]);
 
     return {
       user,
@@ -863,6 +880,31 @@ const updateOrderTotal = async (orderId) => {
     };
   }
 };
+const insertDefaultOrder = async (
+  customerId,
+  id,
+  quantity,
+  created_at,
+  updated_at
+) => {
+  try {
+    const query = `
+      INSERT INTO default_orders (customer_id, product_id, quantity, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?);
+    `;
+    const result = await executeQuery(query, [
+      customerId,
+      id,
+      quantity,
+      created_at,
+      updated_at,
+    ]);
+    return result.insertId;
+  } catch (error) {
+    console.error("Error inserting default order:", error);
+    throw new Error("Database insertion failed for default_orders");
+  }
+};
 
 module.exports = {
   isUserExists,
@@ -895,4 +937,5 @@ module.exports = {
   updateOrderTotal,
   getAllDefectOrders,
   getDefectReportByCustomerId,
+  insertDefaultOrder,
 };
