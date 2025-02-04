@@ -1,5 +1,5 @@
 const environments = {
-  dev: "16.171.111.246",
+  dev: "api.slenterprisess.com",
   home:"192.168.0.110",
   work: "10.0.18.105"
 };
